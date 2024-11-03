@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Notice List</title>
+</head>
+<body>
+<button onclick="saveReq()">글작성</button>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Writer</th>
+        <th>Date Created</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="notice : ${noticeList.content}">
+        <td th:text="${notice.id}"></td>
+        <td>
+            <a th:href="@{/board/notice/{id}(id=${notice.id})}" th:text="${notice.NoticeTitle}"></a>
+        </td>
+        <td th:text="${notice.userId}"></td>
+        <td th:text="${#temporals.format(notice.NoticeCreatedTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- Pagination Links -->
+<div>
+    <a th:href="@{/board/notice(page=1)}">First</a>
+    <a th:href="@{/board/notice(page=${noticeList.number})}" th:if="${noticeList.hasPrevious()}">Prev</a>
+
+    <span th:each="page : ${#numbers.sequence(startPage, endPage)}">
+        <span th:if="${page == noticeList.number + 1}" th:text="${page}"></span>
+        <span th:unless="${page == noticeList.number + 1}">
+            <a th:href="@{/board/notice(page=${page})}" th:text="${page}"></a>
+        </span>
+    </span>
+
+    <a th:href="@{/board/notice(page=${noticeList.number + 2})}" th:if="${noticeList.hasNext()}">Next</a>
+    <a th:href="@{/board/notice(page=${noticeList.totalPages})}">Last</a>
+</div>
+
+</body>
+<script>
+    const saveReq = () => {
+        location.href = "/board/notice/save";
+    }
+</script>
+</html>

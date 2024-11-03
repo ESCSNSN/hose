@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: board2024_boot_jpa
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/project_database?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: project_user
+    password: 1234
+  servlet:
+    multipart:
+      max-file-size: 10MB  # ??? ?? ??
+      max-request-size: 10MB  # ??? ?? ??
+  thymeleaf:
+    cache: false
+
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: update

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>update</title>
+</head>
+<body>
+<form action="/board/notice/update" method="post" name="updateForm">
+  <input type="hidden" name="id" th:value="${noticeUpdate.id}">
+  writer: <input type="text" name="userId" th:value="${noticeUpdate.userId}" readonly> <br>
+  title: <input type="text" name="NoticeTitle" th:value="${noticeUpdate.NoticeTitle}"> <br>
+  contents: <textarea name="NoticeContents" cols="30" rows="10" th:text="${noticeUpdate.NoticeContents}"></textarea> <br>
+  <input type="button" value="글수정" onclick="noticeUpdate()">
+</form>
+<script th:inline="javascript">
+  const noticeUpdate = () => {
+    document.updateForm.submit();
+  }
+</script>
+</body>
