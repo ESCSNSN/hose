@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Competition</title>
+</head>
+<body>
+
+<h1>Create Competition</h1>
+<form action="/board/competition/save" method="post" enctype="multipart/form-data">
+    <label for="userId">SchoolID:</label>
+    <input type="text" id="userId" name="userId" required /> <br/>
+
+    <label for="boardId">Board:</label>
+    <input type="text" id="boardId" name="boardId" required /> <br/>
+
+    <label for="competitionTitle">Title:</label>
+    <input type="text" id="competitionTitle" name="competitionTitle" required /> <br/>
+
+    <label for="competitionContents">Contents:</label>
+    <textarea id="competitionContents" name="competitionContents" cols="30" rows="10" required></textarea> <br/>
+
+    <label for="competitionHashtag">Hashtag:</label>
+    <input type="text" id="competitionHashtag" name="competitionHashtag" /> <br/>
+
+    <label for="competitionFile">Attach Files:</label>
+    <input type="file" id="competitionFile" name="competitionFile" multiple /> <br/>
+
+    <input type="submit" value="글작성">
+</form>
+
+<a href="/board/competition">Back to List</a>
+
+</body>
+</html>

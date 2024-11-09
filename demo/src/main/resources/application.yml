@@ -21,3 +21,16 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+      format_sql: true
+      use_sql_comments: true
+    properties:
+      hibernate:
+        highlight_sql: true
+        generate_statistics: true  # SQL ?? ??? ???
+        jdbc:
+          batch_size: 20  # Batch ?? (??)
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG  # Hibernate? ???? SQL ?? ??
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # SQL ???? ??? ??? ???

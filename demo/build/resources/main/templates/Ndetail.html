@@ -12,17 +12,17 @@
   </tr>
   <tr>
     <th>title</th>
-    <td th:text="${notice.NoticeTitle}"></td>
+    <td th:text="${notice.noticeTitle}"></td>
   </tr>
 
   <tr>
     <th>date</th>
-    <td th:text="${notice.NoticeCreatedTime}"></td>
+    <td th:text="${notice.noticeCreatedTime}"></td>
   </tr>
 
   <tr>
     <th>contents</th>
-    <td th:text="${notice.NoticeContents}"></td>
+    <td th:text="${notice.noticeContents}"></td>
   </tr>
 
   <tr th:if="${notice.fileAttached == 1}">

@@ -7,6 +7,12 @@
 <body>
 <button onclick="saveReq()">글작성</button>
 
+<form action="/board/notice" method="get">
+    <input type="text" name="searchKeyword" placeholder="제목으로 검색" th:value="${searchKeyword}"/>
+    <input type="text" name="contentKeyword" placeholder="내용으로 검색" th:value="${contentKeyword}"/>
+    <input type="submit" value="검색"/>
+</form>
+
 <table>
     <thead>
     <tr>
@@ -20,28 +26,28 @@
     <tr th:each="notice : ${noticeList.content}">
         <td th:text="${notice.id}"></td>
         <td>
-            <a th:href="@{/board/notice/{id}(id=${notice.id})}" th:text="${notice.NoticeTitle}"></a>
+            <a th:href="@{/board/notice/{id}(id=${notice.id})}" th:text="${notice.noticeTitle}"></a>
         </td>
         <td th:text="${notice.userId}"></td>
-        <td th:text="${#temporals.format(notice.NoticeCreatedTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+        <td th:text="${#temporals.format(notice.noticeCreatedTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
     </tr>
     </tbody>
 </table>
 
 <!-- Pagination Links -->
 <div>
-    <a th:href="@{/board/notice(page=1)}">First</a>
-    <a th:href="@{/board/notice(page=${noticeList.number})}" th:if="${noticeList.hasPrevious()}">Prev</a>
+    <a th:href="@{/board/notice(page=${0}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}">First</a>
+    <a th:href="@{/board/notice(page=${noticeList.number - 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}" th:if="${noticeList.hasPrevious()}">Prev</a>
 
     <span th:each="page : ${#numbers.sequence(startPage, endPage)}">
         <span th:if="${page == noticeList.number + 1}" th:text="${page}"></span>
         <span th:unless="${page == noticeList.number + 1}">
-            <a th:href="@{/board/notice(page=${page})}" th:text="${page}"></a>
+            <a th:href="@{/board/notice(page=${page - 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}" th:text="${page}"></a>
         </span>
     </span>
 
-    <a th:href="@{/board/notice(page=${noticeList.number + 2})}" th:if="${noticeList.hasNext()}">Next</a>
-    <a th:href="@{/board/notice(page=${noticeList.totalPages})}">Last</a>
+    <a th:href="@{/board/notice(page=${noticeList.number + 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}" th:if="${noticeList.hasNext()}">Next</a>
+    <a th:href="@{/board/notice(page=${noticeList.totalPages - 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}">Last</a>
 </div>
 
 </body>

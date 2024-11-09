@@ -6,6 +6,7 @@
 </head>
 <body>
 <button onclick="moveNotice()">공지사항</button>
+<button onclick="moveCompetition()">대회정보 게시판</button>
 </body>
 <script>
   //  function saveReq() {
@@ -14,6 +15,10 @@
 
   const moveNotice = () => {
     location.href = "/board/notice";
+  }
+
+  const moveCompetition = () => {
+    location.href = "/board/competition";
   }
 
 

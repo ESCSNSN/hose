@@ -17,13 +17,13 @@ import java.util.List;
 public class NoticeDTO {
     private Long id;
     private String userId;
-    private String NoticeTitle;
-    private String NoticeContents;
-    private LocalDateTime NoticeCreatedTime;
-    private LocalDateTime NoticeUpdatedTime;
+    private String noticeTitle;
+    private String noticeContents;
+    private LocalDateTime noticeCreatedTime;
+    private LocalDateTime noticeUpdatedTime;
 
     //파일 첨부를 위한 부분
-    private List<MultipartFile> NoticeFile;
+    private List<MultipartFile> noticeFile;
     private List<String> originalFileName;
     private List<String> storedFileName;
     private int fileAttached;
@@ -31,8 +31,8 @@ public class NoticeDTO {
     public NoticeDTO(Long id, String userId, String noticeTitle, LocalDateTime noticeCreatedTime) {
         this.id = id;
         this.userId = userId;
-        this.NoticeTitle = noticeTitle;
-        this.NoticeCreatedTime = noticeCreatedTime;
+        this.noticeTitle = noticeTitle;
+        this.noticeCreatedTime = noticeCreatedTime;
 
     }
 

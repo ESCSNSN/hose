@@ -8,13 +8,16 @@
 <form action="/board/notice/update" method="post" name="updateForm">
   <input type="hidden" name="id" th:value="${noticeUpdate.id}">
   writer: <input type="text" name="userId" th:value="${noticeUpdate.userId}" readonly> <br>
-  title: <input type="text" name="NoticeTitle" th:value="${noticeUpdate.NoticeTitle}"> <br>
-  contents: <textarea name="NoticeContents" cols="30" rows="10" th:text="${noticeUpdate.NoticeContents}"></textarea> <br>
+  title: <input type="text" name="NoticeTitle" th:value="${noticeUpdate.noticeTitle}"> <br>
+  contents: <textarea name="NoticeContents" cols="30" rows="10" th:text="${noticeUpdate.noticeContents}"></textarea> <br>
   <input type="button" value="글수정" onclick="noticeUpdate()">
 </form>
 <script th:inline="javascript">
   const noticeUpdate = () => {
     document.updateForm.submit();
+    console.log("목록 요청");
+    const page = [[${page}]]
+    location.href = "/board/notice?page="+page;
   }
 </script>
 </body>

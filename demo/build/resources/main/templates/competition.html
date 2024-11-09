@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Competition List</title>
+    <style>
+        /* 테이블 스타일 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* 스크랩 버튼 스타일 */
+        .btn-scrap {
+            padding: 6px 12px;
+            margin: 2px;
+            border: none;
+            cursor: pointer;
+            background-color: gray;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn-scrap.active {
+            background-color: red;
+        }
+
+        /* 페이징 스타일 */
+        .pagination {
+            margin-top: 20px;
+        }
+        .pagination a, .pagination span {
+            margin: 0 5px;
+            text-decoration: none;
+            color: blue;
+            font-weight: bold;
+        }
+        .pagination span.current {
+            color: black;
+        }
+
+        /* 버튼 스타일 */
+        button {
+            padding: 8px 16px;
+            margin: 10px 0;
+            border: none;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<h1>Competition List</h1>
+<button onclick="saveReq()">글작성</button>
+
+<!-- 검색 폼 -->
+<form th:action="@{/board/competition}" method="get" style="margin-top: 20px;">
+    <input type="text" name="searchKeyword" placeholder="제목으로 검색" th:value="${searchKeyword}"/>
+    <input type="text" name="contentKeyword" placeholder="내용으로 검색" th:value="${contentKeyword}"/>
+    <input type="text" name="hashtagKeyword" placeholder="해시태그 검색" th:value="${hashtagKeyword}"/>
+    <input type="submit" value="검색"/>
+</form>
+
+<!-- 경쟁 목록 테이블 -->
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Writer</th>
+        <th>Date Created</th>
+        <th>Scraps</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="competition : ${competitionList.content}">
+        <td th:text="${competition.id}"></td>
+        <td>
+            <a th:href="@{/board/competition/{id}(id=${competition.id})}" th:text="${competition.competitionTitle}"></a>
+        </td>
+        <td th:text="${competition.userId}"></td>
+        <td th:text="${#temporals.format(competition.competitionCreatedTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+        <td th:text="${competition.scrap}">0</td>
+        <td>
+            <!-- 상세 보기 -->
+            <a th:href="@{/board/competition/{id}(id=${competition.id})}">View</a>
+
+            <!-- 수정 -->
+            <a th:href="@{/board/competition/update/{id}(id=${competition.id})}">수정</a>
+
+            <!-- 삭제 -->
+            <a th:href="@{/board/competition/delete/{id}(id=${competition.id})}">삭제</a>
+
+            <!-- 스크랩 버튼 -->
+            <form th:action="@{/board/competition/{id}/scrap(id=${competition.id})}" method="post" style="display:inline;">
+                <!-- CSRF 토큰 자동 포함 (Spring Security 사용 시) -->
+                <button type="submit"
+                        class="btn-scrap"
+                        th:classappend="${competition.scrap == 1} ? 'active' : ''">
+                    Scrap
+                </button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- 페이징 링크 -->
+<div class="pagination">
+    <a th:href="@{/board/competition(page=0, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}">First</a>
+    <a th:href="@{/board/competition(page=${competitionList.number - 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}" th:if="${competitionList.hasPrevious()}">Prev</a>
+
+    <span th:each="pageNum : ${#numbers.sequence(startPage, endPage)}">
+            <span th:if="${pageNum == competitionList.number + 1}" th:text="${pageNum}" class="current"></span>
+            <span th:unless="${pageNum == competitionList.number + 1}">
+                <a th:href="@{/board/competition(page=${pageNum - 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}" th:text="${pageNum}"></a>
+            </span>
+        </span>
+
+    <a th:href="@{/board/competition(page=${competitionList.number + 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}" th:if="${competitionList.hasNext()}">Next</a>
+    <a th:href="@{/board/competition(page=${competitionList.totalPages - 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}">Last</a>
+</div>
+
+<script>
+    const saveReq = () => {
+        location.href = "/board/competition/save";
+    }
+</script>
+</body>
+</html>

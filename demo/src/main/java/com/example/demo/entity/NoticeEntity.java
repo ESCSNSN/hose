@@ -1,6 +1,5 @@
 package com.example.demo.entity;
 
-
 import com.example.demo.dto.NoticeDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,11 +8,10 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Entity
 @Getter
 @Setter
-@Table(name = "Notice_table")
+@Table(name = "notice_table")
 public class NoticeEntity extends NoticeBaseEntity {
 
     @Id
@@ -23,18 +21,17 @@ public class NoticeEntity extends NoticeBaseEntity {
     @Column(length = 20, nullable = false)
     private String userId;
 
-    @Column
-    private String NoticeTitle;
+    @Column(name = "notice_title")
+    private String noticeTitle;  // camelCase로 수정
 
-    @Column
-    private String NoticeContents;
+    @Column(name = "notice_contents",length = 500)
+    private String noticeContents;  // camelCase로 수정
 
     @Column
     private int fileAttached; // 1 or 0
 
     @OneToMany(mappedBy = "noticeEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<NoticeFileEntity> noticeFileEntityList = new ArrayList<>();
-
 
     public static NoticeEntity toSaveEntity(NoticeDTO noticeDTO) {
         NoticeEntity noticeEntity = new NoticeEntity();
@@ -61,6 +58,5 @@ public class NoticeEntity extends NoticeBaseEntity {
         noticeEntity.setNoticeContents(noticeDTO.getNoticeContents());
         noticeEntity.setFileAttached(1);
         return noticeEntity;
-
     }
 }

@@ -66,6 +66,8 @@ public class NoticeService {
         return noticeDTOList;
     }
 
+
+
     @Transactional
     public NoticeDTO findByID(Long id) {
         Optional<NoticeEntity> optionalNoticeEntity = noticeRepository.findById(id);
@@ -90,12 +92,32 @@ public class NoticeService {
     }
 
     public Page<NoticeDTO> paging(Pageable pageable) {
-        int page = pageable.getPageNumber() -1;
-        int pageLimit = 10; //한 페이지에 보여줄 글 갯수
-        Page<NoticeEntity> noticeEntities =
-                noticeRepository.findAll(PageRequest.of(page,pageLimit,Sort.by(Sort.Direction.DESC, "id")));
+        int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
+        int pageLimit = 5; // 한 페이지에 보여줄 글 갯수
 
-        Page<NoticeDTO> noticeDTOS = noticeEntities.map(notice -> new NoticeDTO(notice.getId(),notice.getUserId(),notice.getNoticeTitle(),notice.getNoticeCreatedTime()));
-        return noticeDTOS;
+        // pageable을 사용해 페이지와 정렬을 설정
+        Page<NoticeEntity> noticeEntities = noticeRepository.findAll(PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "id")));
+
+        // NoticeEntity를 NoticeDTO로 변환
+        return noticeEntities.map(notice -> new NoticeDTO(
+                notice.getId(),
+                notice.getUserId(),
+                notice.getNoticeTitle(),
+                notice.getNoticeCreatedTime()
+        ));
     }
+
+
+        @Transactional
+        public Page<NoticeDTO> searchByTitleOrContents(String title, String content, Pageable pageable) {
+            Page<NoticeEntity> noticeEntities = noticeRepository.findByTitleOrContentsContaining(title, content, pageable);
+
+            // Lazy-loaded 컬렉션을 초기화
+            noticeEntities.forEach(notice -> notice.getNoticeFileEntityList().size());
+
+            return noticeEntities.map(NoticeDTO::toNoticeDTO);
+        }
+
+
+
 }
