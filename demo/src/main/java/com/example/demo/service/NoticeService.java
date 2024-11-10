@@ -92,13 +92,13 @@ public class NoticeService {
     }
 
     public Page<NoticeDTO> paging(Pageable pageable) {
-        int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
-        int pageLimit = 5; // 한 페이지에 보여줄 글 갯수
+        int page = Math.max(pageable.getPageNumber(), 0);
+        int pageLimit = 5;
 
-        // pageable을 사용해 페이지와 정렬을 설정
-        Page<NoticeEntity> noticeEntities = noticeRepository.findAll(PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "id")));
+        Page<NoticeEntity> noticeEntities = noticeRepository.findAllByOrderByIsPinnedDescNoticeCreatedTimeDesc(
+                PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "isPinned", "noticeCreatedTime"))
+        );
 
-        // NoticeEntity를 NoticeDTO로 변환
         return noticeEntities.map(notice -> new NoticeDTO(
                 notice.getId(),
                 notice.getUserId(),
@@ -107,16 +107,26 @@ public class NoticeService {
         ));
     }
 
+    @Transactional
+    public Page<NoticeDTO> searchByTitleOrContents(String title, String content, Pageable pageable) {
+        Page<NoticeEntity> noticeEntities = noticeRepository.findByTitleOrContentsContaining(title, content, pageable);
 
-        @Transactional
-        public Page<NoticeDTO> searchByTitleOrContents(String title, String content, Pageable pageable) {
-            Page<NoticeEntity> noticeEntities = noticeRepository.findByTitleOrContentsContaining(title, content, pageable);
+        // Lazy-loaded 컬렉션을 초기화
+        noticeEntities.forEach(notice -> notice.getNoticeFileEntityList().size());
 
-            // Lazy-loaded 컬렉션을 초기화
-            noticeEntities.forEach(notice -> notice.getNoticeFileEntityList().size());
+        return noticeEntities.map(NoticeDTO::toNoticeDTO);
+    }
 
-            return noticeEntities.map(NoticeDTO::toNoticeDTO);
-        }
+    @Transactional
+    public boolean togglePin(Long id) {
+        NoticeEntity notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Notice not found with id: " + id));
+        boolean newPinStatus = !notice.isPinned(); // 핀 상태 반전
+        notice.setPinned(newPinStatus);
+        noticeRepository.save(notice); // 변경 사항 저장
+        return newPinStatus; // 새 핀 상태 반환
+    }
+
 
 
 

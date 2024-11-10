@@ -21,6 +21,7 @@ public class NoticeDTO {
     private String noticeContents;
     private LocalDateTime noticeCreatedTime;
     private LocalDateTime noticeUpdatedTime;
+    private boolean isPinned; // 고정 여부 추가
 
     //파일 첨부를 위한 부분
     private List<MultipartFile> noticeFile;
@@ -33,6 +34,7 @@ public class NoticeDTO {
         this.userId = userId;
         this.noticeTitle = noticeTitle;
         this.noticeCreatedTime = noticeCreatedTime;
+        this.isPinned = isPinned;
 
     }
 
@@ -44,6 +46,7 @@ public class NoticeDTO {
         noticeDTO.setNoticeContents(noticeEntity.getNoticeContents());
         noticeDTO.setNoticeCreatedTime(noticeEntity.getNoticeCreatedTime());
         noticeDTO.setNoticeUpdatedTime(noticeEntity.getNoticeUpdatedTime());
+        noticeDTO.setPinned(noticeEntity.isPinned());
         if(noticeEntity.getFileAttached() == 0) {
             noticeDTO.setFileAttached(noticeEntity.getFileAttached());
         }

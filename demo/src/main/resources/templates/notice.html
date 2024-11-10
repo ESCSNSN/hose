@@ -13,47 +13,65 @@
     <input type="submit" value="검색"/>
 </form>
 
-<table>
+<table id="notice-table">
     <thead>
     <tr>
         <th>ID</th>
         <th>Title</th>
         <th>Writer</th>
         <th>Date Created</th>
+        <th>Pin</th>
     </tr>
     </thead>
     <tbody>
-    <tr th:each="notice : ${noticeList.content}">
+    <tr th:each="notice : ${noticeList.content}" th:id="'notice-row-' + ${notice.id}">
         <td th:text="${notice.id}"></td>
         <td>
             <a th:href="@{/board/notice/{id}(id=${notice.id})}" th:text="${notice.noticeTitle}"></a>
         </td>
         <td th:text="${notice.userId}"></td>
         <td th:text="${#temporals.format(notice.noticeCreatedTime, 'yyyy-MM-dd HH:mm:ss')}"></td>
+        <td>
+            <button th:id="'pin-btn-' + ${notice.id}"
+                    th:data-is-pinned="${notice.isPinned}"
+                    th:onclick="'togglePin(' + ${notice.id} + ')'"
+                    th:text="${notice.isPinned ? 'Unpin' : 'Pin'}">
+            </button>
+        </td>
     </tr>
     </tbody>
 </table>
 
-<!-- Pagination Links -->
-<div>
-    <a th:href="@{/board/notice(page=${0}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}">First</a>
-    <a th:href="@{/board/notice(page=${noticeList.number - 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}" th:if="${noticeList.hasPrevious()}">Prev</a>
-
-    <span th:each="page : ${#numbers.sequence(startPage, endPage)}">
-        <span th:if="${page == noticeList.number + 1}" th:text="${page}"></span>
-        <span th:unless="${page == noticeList.number + 1}">
-            <a th:href="@{/board/notice(page=${page - 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}" th:text="${page}"></a>
-        </span>
-    </span>
-
-    <a th:href="@{/board/notice(page=${noticeList.number + 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}" th:if="${noticeList.hasNext()}">Next</a>
-    <a th:href="@{/board/notice(page=${noticeList.totalPages - 1}, searchKeyword=${searchKeyword}, contentKeyword=${contentKeyword})}">Last</a>
-</div>
-
-</body>
 <script>
     const saveReq = () => {
         location.href = "/board/notice/save";
     }
+
+    function togglePin(noticeId) {
+        fetch(`/board/notice/${noticeId}/pin-toggle`, {
+            method: 'POST'
+        }).then(response => response.json())
+            .then(isPinned => {
+                const button = document.querySelector(`#pin-btn-${noticeId}`);
+                const row = document.querySelector(`#notice-row-${noticeId}`);
+
+                if (button && row) {
+                    button.textContent = isPinned ? "Unpin" : "Pin";
+                    button.dataset.isPinned = isPinned;
+
+                    // 상단으로 이동: `pin` 상태가 `true`이면 맨 위로, `false`이면 원래 위치 유지
+                    const tableBody = document.querySelector("#notice-table tbody");
+                    if (isPinned) {
+                        tableBody.prepend(row); // 상단으로 이동
+                    } else {
+                        tableBody.append(row); // 하단으로 이동
+                    }
+                }
+            }).catch(error => {
+            console.error("Error toggling pin:", error);
+            alert("핀 상태를 변경할 수 없습니다.");
+        });
+    }
 </script>
+</body>
 </html>

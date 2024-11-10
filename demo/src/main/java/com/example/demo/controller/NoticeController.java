@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,40 +28,37 @@ public class NoticeController {
                          @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
                          @RequestParam(value = "contentKeyword", required = false) String contentKeyword) {
 
-        // page와 size가 null이거나 음수일 경우 기본값을 설정
         if (page == null || page < 0) {
             page = 0;
         }
         if (size == null || size <= 0) {
-            size = 10; // 기본 페이지 크기 설정
+            size = 10;
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "notice_created_time"));
+        Pageable pageable = PageRequest.of(page, size);
         Page<NoticeDTO> noticeList;
 
-        // 검색 조건에 따라 검색
         if ((searchKeyword == null || searchKeyword.isEmpty()) && (contentKeyword == null || contentKeyword.isEmpty())) {
-            noticeList = noticeService.paging(pageable);
+            noticeList = noticeService.paging(pageable); // 검색어 없을 때 기본 페이징
         } else {
-            noticeList = noticeService.searchByTitleOrContents(searchKeyword, contentKeyword, pageable);
+            noticeList = noticeService.searchByTitleOrContents(searchKeyword, contentKeyword, pageable); // 검색어 있을 때 검색 결과
         }
 
-        // 페이지 네비게이션 계산
         int blockLimit = 3;
         int currentPage = noticeList.getNumber();
         int startPage = (currentPage / blockLimit) * blockLimit + 1;
-        int endPage = Math.min(startPage + blockLimit - 1, noticeList.getTotalPages()); // 수정
+        int endPage = Math.min(startPage + blockLimit - 1, noticeList.getTotalPages());
 
-// 모델에 필요한 속성 추가
         model.addAttribute("noticeList", noticeList);
         model.addAttribute("startPage", startPage);
         model.addAttribute("endPage", endPage);
         model.addAttribute("searchKeyword", searchKeyword);
         model.addAttribute("contentKeyword", contentKeyword);
 
-
         return "notice";
     }
+
+
 
 
 
@@ -105,4 +104,15 @@ public class NoticeController {
         noticeService.delete(id);
         return "redirect:/board/notice";
     }
+
+
+    @PostMapping("/notice/{id}/pin-toggle")
+    public ResponseEntity<Boolean> togglePin(@PathVariable Long id) {
+        boolean isPinned = noticeService.togglePin(id); // 핀 상태 반전 후 반환
+        return ResponseEntity.ok(isPinned); // 새로운 핀 상태 반환
+    }
+
+
+
+
 }
