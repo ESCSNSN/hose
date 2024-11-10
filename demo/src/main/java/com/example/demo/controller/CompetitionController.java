@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.CompetitionCommentDTO;
 import com.example.demo.dto.CompetitionDTO;
+import com.example.demo.service.CompetitionCommentService;
 import com.example.demo.service.CompetitionService;
 // 불필요한 임포트 제거
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import java.io.IOException;
 public class CompetitionController {
 
     private final CompetitionService competitionService;
+    private final CompetitionCommentService competitionCommentService;
 
     // GET /board/competition
     @GetMapping("/competition")
@@ -136,5 +139,18 @@ public class CompetitionController {
     public String scrapCompetition(@PathVariable Long id, @RequestParam(value = "page", defaultValue = "0") int page) {
         competitionService.toggleScrap(id);
         return "redirect:/board/competition/" + id + "?page=" + page;
+    }
+
+    @PostMapping("/competition/{competitionId}/comments")
+    public String addComment(@PathVariable Long competitionId,
+                             @ModelAttribute CompetitionCommentDTO commentDTO){
+        competitionCommentService.addComment(competitionId, commentDTO);
+        return "redirect:/board/competition/" + competitionId;
+    }
+
+    @GetMapping("/competition/{competitionId}/comments/delete/{commentId}")
+    public String deleteComment(@PathVariable Long competitionId, @PathVariable Long commentId){
+        competitionCommentService.deleteComment(commentId);
+        return "redirect:/board/competition/" + competitionId;
     }
 }
