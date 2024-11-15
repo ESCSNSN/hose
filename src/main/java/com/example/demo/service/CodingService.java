@@ -142,8 +142,8 @@ public class CodingService {
         return topLikedEntities.stream()
                 .map(coding -> new CodingDTO(
                         coding.getId(),
+                        coding.getCodingtype(),
                         coding.getCodingtitle(),
-                        coding.getCodingcontents(),
                         coding.getCodingCreatedTime(),
                         coding.getCodingLike(),
                         coding.getScrap()
