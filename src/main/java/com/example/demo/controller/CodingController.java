@@ -1,12 +1,16 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.CodingDTO;
+import com.example.demo.dto.CommentDTO;
+import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.service.CodingService;
+import com.example.demo.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +23,7 @@ import java.util.List;
 public class CodingController {
 
     private final CodingService codingService;
+    private final CommentService commentService;
 
     // GET /api/board/coding
     @GetMapping("/coding")
@@ -141,5 +146,59 @@ public class CodingController {
             return codingService.searchAndSortByLikes(searchKeyword, contentKeyword, hashtagKeyword, typeKeyword, pageable);
         }
     }
+    // POST /api/board/coding/{id}/comments/add
+    @PostMapping("/coding/{id}/comments/add")
+    public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
+                                                 @RequestParam(required = false) Long parentCommentId,
+                                                 @RequestParam String content,
+                                                 @RequestParam String userId) {
+        CommentDTO commentDTO = new CommentDTO();
+        commentDTO.setContent(content);
+        commentDTO.setUserId(userId);
+        commentDTO.setTargetType("Coding");
+        commentDTO.setTargetId(id);
+        commentDTO.setParentCommentId(parentCommentId);
+        commentService.addComment(commentDTO);
+        return ResponseEntity.ok(commentDTO);
+    }
+
+    // POST /api/board/coding/{id}/comments/{commentId}/delete
+    @PostMapping("/coding/{id}/comments/{commentId}/delete")
+    public ResponseEntity<String> deleteComment(@PathVariable Long id,
+                                                @PathVariable Long commentId,
+                                                @RequestParam String userId) {
+        try {
+            commentService.deleteComment(commentId, userId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (UnauthorizedDeletionException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    // POST /api/board/coding/{id}/comments/{commentId}/report
+    @PostMapping("/coding/{id}/comments/{commentId}/report")
+    public ResponseEntity<String> reportComment(@PathVariable Long id,
+                                                @PathVariable Long commentId,
+                                                @RequestParam String reason,
+                                                @RequestParam String reporterId) {
+        commentService.reportComment(commentId, reporterId, reason);
+        return ResponseEntity.ok("댓글이 성공적으로 신고되었습니다.");
+    }
+
+    // GET /api/board/coding/{id}/comments
+    @GetMapping("/coding/{id}/comments")
+    public ResponseEntity<Page<CommentDTO>> getComments(@PathVariable Long id,
+                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                        @RequestParam(value = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<CommentDTO> comments = commentService.getComments("Coding", id, pageable);
+        return ResponseEntity.ok(comments);
+    }
+
+
+
+
 
 }

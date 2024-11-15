@@ -1,6 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.CompetitionDTO;
+import com.example.demo.exception.UnauthorizedDeletionException;
+import com.example.demo.service.CommentService;
 import com.example.demo.service.CompetitionService;
 // 불필요한 임포트 제거
 import lombok.RequiredArgsConstructor;
@@ -8,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +25,7 @@ import java.io.IOException;
 public class CompetitionController {
 
     private final CompetitionService competitionService;
+    private final CommentService commentService;
 
     // GET /board/competition
     @GetMapping("/competition")
@@ -138,4 +144,58 @@ public class CompetitionController {
         return "redirect:/board/competition/" + id + "?page=" + page;
 
     }
+
+    // POST /api/board/competition/{id}/comments/add
+    @PostMapping("/competition/{id}/comments/add")
+    public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
+                                                 @RequestParam(required = false) Long parentCommentId,
+                                                 @RequestParam String content,
+                                                 @RequestParam String userId) {
+        CommentDTO commentDTO = new CommentDTO();
+        commentDTO.setContent(content);
+        commentDTO.setUserId(userId);
+        commentDTO.setTargetType("Competition");
+        commentDTO.setTargetId(id);
+        commentDTO.setParentCommentId(parentCommentId);
+        commentService.addComment(commentDTO);
+        return ResponseEntity.ok(commentDTO);
+    }
+
+    // POST /api/board/competition/{id}/comments/{commentId}/delete
+    @PostMapping("/coding/{id}/comments/{commentId}/delete")
+    public ResponseEntity<String> deleteComment(@PathVariable Long id,
+                                                @PathVariable Long commentId,
+                                                @RequestParam String userId) {
+        try {
+            commentService.deleteComment(commentId, userId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (UnauthorizedDeletionException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    // POST /api/board/competition/{id}/comments/{commentId}/report
+    @PostMapping("/competition/{id}/comments/{commentId}/report")
+    public ResponseEntity<String> reportComment(@PathVariable Long id,
+                                                @PathVariable Long commentId,
+                                                @RequestParam String reason,
+                                                @RequestParam String reporterId) {
+        commentService.reportComment(commentId, reporterId, reason);
+        return ResponseEntity.ok("댓글이 성공적으로 신고되었습니다.");
+    }
+
+    // GET /api/board/competition/{id}/comments
+    @GetMapping("/competition/{id}/comments")
+    public ResponseEntity<Page<CommentDTO>> getComments(@PathVariable Long id,
+                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                        @RequestParam(value = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<CommentDTO> comments = commentService.getComments("Competition", id, pageable);
+        return ResponseEntity.ok(comments);
+    }
+
+
+
 }
