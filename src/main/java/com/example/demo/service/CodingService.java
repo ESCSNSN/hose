@@ -91,7 +91,7 @@ public class CodingService {
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
         // pageable을 사용해 페이지와 정렬을 설정
-        Page<CodingEntity> codingEntities = codingRepository.findAll(PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "id")));
+        Page<CodingEntity> codingEntities = codingRepository.findAll(PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "coding_created_time")));
 
         // NoticeEntity를 NoticeDTO로 변환
         return codingEntities.map(coding -> new CodingDTO(
@@ -153,8 +153,7 @@ public class CodingService {
     @Transactional
     public Page<CodingDTO> searchAndSortByLikes(String searchKeyword, String contentKeyword, String hashtagKeyword, String typeKeyword, Pageable pageable) {
         Page<CodingEntity> codingEntities = codingRepository.findByTitleOrContentsContaining(
-                searchKeyword, contentKeyword, hashtagKeyword, typeKeyword, pageable
-        );
+                searchKeyword, contentKeyword, hashtagKeyword, typeKeyword, pageable);
 
         // Lazy-loaded 컬렉션 초기화 (필요 시)
         codingEntities.forEach(coding -> coding.getCodingFileEntityList().size());
@@ -164,12 +163,20 @@ public class CodingService {
 
     @Transactional
     public Page<CodingDTO> sortByLikes(Pageable pageable) {
-        Page<CodingEntity> codingEntities = codingRepository.findAll(pageable);
+        int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
+        int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
-        // Lazy-loaded 컬렉션 초기화 (필요 시)
-        codingEntities.forEach(coding -> coding.getCodingFileEntityList().size());
+        // pageable을 사용해 페이지와 정렬을 설정
+        Page<CodingEntity> codingEntities = codingRepository.findAll(PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "coding_like")));
 
-        return codingEntities.map(CodingDTO::toCodingDTO);
+        // NoticeEntity를 NoticeDTO로 변환
+        return codingEntities.map(coding -> new CodingDTO(
+                coding.getId(),
+                coding.getCodingtype(),
+                coding.getCodingtitle(),
+                coding.getCodingCreatedTime(),
+                coding.getScrap()
+        ));
     }
 
 }

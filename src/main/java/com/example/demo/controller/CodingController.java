@@ -91,7 +91,7 @@ public class CodingController {
     // POST /api/board/coding/{id}/like
     @PostMapping("/coding/{id}/like")
     public void likeCoding(@PathVariable Long id) {
-        codingService.increaseLike(id); // toggleLike에서 increaseLike로 변경
+        codingService.increaseLike(id);
     }
 
 
@@ -129,13 +129,15 @@ public class CodingController {
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "coding_like"));
+        Page<CodingDTO> codingList;
 
         // 검색 파라미터가 없으면 단순히 좋아요 순 정렬
         if ((searchKeyword == null || searchKeyword.isEmpty()) &&
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty()) &&
                 (typeKeyword == null || typeKeyword.isEmpty())) {
-            return codingService.sortByLikes(pageable);
+            codingList =  codingService.sortByLikes(pageable);
+            return codingList;
         } else {
             // 검색 파라미터가 있으면 검색과 함께 좋아요 순 정렬
             return codingService.searchAndSortByLikes(searchKeyword, contentKeyword, hashtagKeyword, typeKeyword, pageable);
