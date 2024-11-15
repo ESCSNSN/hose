@@ -6,21 +6,23 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
-@Getter
+    @MappedSuperclass
+    @EntityListeners(AuditingEntityListener.class)
+    @Getter
+    public class CompetitionBaseEntity {
+        @CreationTimestamp
+        @Column(updatable = false)
+        private LocalDateTime competitionCreatedTime;
 
-public class NoticeBaseEntity {
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime noticeCreatedTime;
+        @UpdateTimestamp
+        @Column(insertable = false)
+        private LocalDateTime competitionUpdatedTime;
+    }
 
-    @UpdateTimestamp
-    @Column(insertable = false)
-    private LocalDateTime noticeUpdatedTime;
-}
+
+
+

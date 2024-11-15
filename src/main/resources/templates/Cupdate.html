@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Competition</title>
+</head>
+<body>
+<h1>경쟁 수정</h1>
+<form th:action="@{/board/competition/update}" th:object="${competitionUpdate}" method="post" enctype="multipart/form-data">
+    <!-- ID (Hidden) -->
+    <input type="hidden" th:field="*{id}" />
+
+    <!-- Writer (Readonly) -->
+    <label for="userId">작성자:</label>
+    <input type="text" id="userId" th:field="*{userId}" readonly /> <br/>
+
+    <!-- Board (Readonly) -->
+    <label for="boardId">보드:</label>
+    <input type="text" id="boardId" th:field="*{boardId}" readonly /> <br/>
+
+    <!-- Title -->
+    <label for="competitionTitle">제목:</label>
+    <input type="text" id="competitionTitle" th:field="*{competitionTitle}" required /> <br/>
+
+    <!-- Contents -->
+    <label for="competitionContents">내용:</label>
+    <textarea id="competitionContents" th:field="*{competitionContents}" cols="30" rows="10" required></textarea> <br/>
+
+    <!-- Hashtag -->
+    <label for="competitionHashtag">해시태그:</label>
+    <input type="text" id="competitionHashtag" th:field="*{competitionHashtag}" /> <br/>
+
+    <!-- 파일 첨부 (선택 사항) -->
+    <label for="competitionFile">파일:</label>
+    <input type="file" id="competitionFile" th:field="*{competitionFile}" multiple /> <br/>
+
+    <!-- 제출 버튼 -->
+    <input type="submit" value="글수정">
+</form>
+
+<a href="/board/competition">목록으로 돌아가기</a>
+</body>
+</html>
