@@ -91,7 +91,7 @@ public class CodingService {
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
         // pageable을 사용해 페이지와 정렬을 설정
-        Page<CodingEntity> codingEntities = codingRepository.findAll(PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "coding_created_time")));
+        Page<CodingEntity> codingEntities = codingRepository.findAll(PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "id")));
 
         // NoticeEntity를 NoticeDTO로 변환
         return codingEntities.map(coding -> new CodingDTO(
@@ -99,6 +99,7 @@ public class CodingService {
                 coding.getCodingtype(),
                 coding.getCodingtitle(),
                 coding.getCodingCreatedTime(),
+                coding.getCodingLike(),
                 coding.getScrap()
         ));
     }
@@ -144,6 +145,7 @@ public class CodingService {
                         coding.getCodingtitle(),
                         coding.getCodingcontents(),
                         coding.getCodingCreatedTime(),
+                        coding.getCodingLike(),
                         coding.getScrap()
                 ))
                 .collect(Collectors.toList());
@@ -161,22 +163,25 @@ public class CodingService {
         return codingEntities.map(CodingDTO::toCodingDTO);
     }
 
+
     @Transactional
     public Page<CodingDTO> sortByLikes(Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
-        // pageable을 사용해 페이지와 정렬을 설정
-        Page<CodingEntity> codingEntities = codingRepository.findAll(PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "coding_like")));
+        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "codingLike")); // 필드 이름 확인
 
-        // NoticeEntity를 NoticeDTO로 변환
+        Page<CodingEntity> codingEntities = codingRepository.findAll(pageRequest);
+
         return codingEntities.map(coding -> new CodingDTO(
                 coding.getId(),
                 coding.getCodingtype(),
                 coding.getCodingtitle(),
                 coding.getCodingCreatedTime(),
+                coding.getCodingLike(),
                 coding.getScrap()
         ));
     }
+
 
 }

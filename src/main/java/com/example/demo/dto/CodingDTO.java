@@ -34,11 +34,12 @@ public class CodingDTO {
     private List<String> storedFileName;
     private int fileAttached;
 
-    public CodingDTO(Long id, String codingType, String codingTitle, LocalDateTime codingCreatedTime,Integer scrap) {
+    public CodingDTO(Long id, String codingType, String codingTitle, LocalDateTime codingCreatedTime,Integer codingLike,Integer scrap) {
         this.id = id;
         this.codingType = codingType;
         this.codingTitle = codingTitle;
         this.codingCreatedTime = codingCreatedTime;
+        this.codingLike = codingLike;
         this.scrap = scrap;
     }
 
