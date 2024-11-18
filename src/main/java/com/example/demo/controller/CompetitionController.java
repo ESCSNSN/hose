@@ -176,15 +176,6 @@ public class CompetitionController {
         }
     }
 
-    // POST /api/board/competition/{id}/comments/{commentId}/report
-    @PostMapping("/competition/{id}/comments/{commentId}/report")
-    public ResponseEntity<String> reportComment(@PathVariable Long id,
-                                                @PathVariable Long commentId,
-                                                @RequestParam String reason,
-                                                @RequestParam String reporterId) {
-        commentService.reportComment(commentId, reporterId, reason);
-        return ResponseEntity.ok("댓글이 성공적으로 신고되었습니다.");
-    }
 
     // GET /api/board/competition/{id}/comments
     @GetMapping("/competition/{id}/comments")

@@ -84,12 +84,14 @@ public class CommentService {
     /**
      * 댓글 신고
      *
+     * @param boardType    게시판 ID
+     * @param postId     게시글 ID
      * @param commentId  신고 대상 댓글 ID
      * @param reporterId 신고자 ID
      * @param reason     신고 사유
      */
-    public void reportComment(Long commentId, String reporterId, String reason) {
-        CommentReportDTO reportDTO = new CommentReportDTO(commentId, reporterId, reason);
+    public void reportComment(String boardType, Long postId, Long commentId, String reporterId, String reason) {
+        CommentReportDTO reportDTO = new CommentReportDTO(commentId, boardType, postId, reporterId, reason);
         commentReportService.addReport(reportDTO);
     }
 }

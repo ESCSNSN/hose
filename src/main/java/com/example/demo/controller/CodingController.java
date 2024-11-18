@@ -5,6 +5,7 @@ import com.example.demo.dto.CommentDTO;
 import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.service.CodingService;
 import com.example.demo.service.CommentService;
+import com.example.demo.service.PostReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ public class CodingController {
 
     private final CodingService codingService;
     private final CommentService commentService;
+    private final PostReportService postReportService;
 
     // GET /api/board/coding
     @GetMapping("/coding")
@@ -177,15 +179,6 @@ public class CodingController {
         }
     }
 
-    // POST /api/board/coding/{id}/comments/{commentId}/report
-    @PostMapping("/coding/{id}/comments/{commentId}/report")
-    public ResponseEntity<String> reportComment(@PathVariable Long id,
-                                                @PathVariable Long commentId,
-                                                @RequestParam String reason,
-                                                @RequestParam String reporterId) {
-        commentService.reportComment(commentId, reporterId, reason);
-        return ResponseEntity.ok("댓글이 성공적으로 신고되었습니다.");
-    }
 
     // GET /api/board/coding/{id}/comments
     @GetMapping("/coding/{id}/comments")
@@ -196,9 +189,5 @@ public class CodingController {
         Page<CommentDTO> comments = commentService.getComments("Coding", id, pageable);
         return ResponseEntity.ok(comments);
     }
-
-
-
-
 
 }
