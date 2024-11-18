@@ -162,7 +162,7 @@ public class CompetitionController {
     }
 
     // POST /api/board/competition/{id}/comments/{commentId}/delete
-    @PostMapping("/coding/{id}/comments/{commentId}/delete")
+    @PostMapping("/competition/{id}/comments/{commentId}/delete")
     public ResponseEntity<String> deleteComment(@PathVariable Long id,
                                                 @PathVariable Long commentId,
                                                 @RequestParam String userId) {
