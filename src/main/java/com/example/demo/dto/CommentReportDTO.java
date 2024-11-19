@@ -13,4 +13,5 @@ public class CommentReportDTO {
     private Long postId;     // 게시글 ID
     private String reporterId; // 신고자 ID
     private String reason;   // 신고 사유
+    private Integer reportCount; // 신고 횟수
 }
