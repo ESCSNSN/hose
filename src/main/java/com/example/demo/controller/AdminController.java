@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.CommentReportDTO;
+import com.example.demo.dto.PostReportDTO;
 import com.example.demo.service.CommentReportService;
+import com.example.demo.service.PostReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.List;
 public class AdminController {
 
     private final CommentReportService commentReportService;
+    private final PostReportService postReportService;
 
     /**
      * 모든 댓글 신고 목록 조회
@@ -42,6 +45,33 @@ public class AdminController {
         List<CommentReportDTO> reports = commentReportService.getReportsByCommentId(commentId);
         return ResponseEntity.ok(reports);
     }
+
+    /**
+     * 모든 게시물 신고 목록 조회
+     * URL: GET /api/admin/post-reports
+     *
+     * @return 모든 게시물 신고 DTO 리스트
+     */
+    @GetMapping("/post-reports")
+    public ResponseEntity<List<PostReportDTO>> getAllPostReports() {
+        List<PostReportDTO> reports = postReportService.getAllReports();
+        return ResponseEntity.ok(reports);
+    }
+
+    /**
+     * 특정 게시물 신고 목록 조회
+     * URL: GET /api/admin/post-reports/{postId}
+     *
+     * @param postId 게시물 ID
+     * @return 특정 게시물 신고 DTO 리스트
+     */
+
+    @GetMapping("/post-reports/{postId}")
+    public ResponseEntity<List<PostReportDTO>> getPostReportsByPostId(@PathVariable Long postId) {
+        List<PostReportDTO> reports = postReportService.getReportsByPostId(postId);
+        return ResponseEntity.ok(reports);
+    }
+
 
 
 }

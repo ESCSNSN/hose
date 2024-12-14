@@ -14,14 +14,14 @@ public class PostReportApiController {
     private PostReportService postReportService;
 
     /**
-     * POST /api/posts/{id}/report
+     * POST /api/board/{boardType}/{postId}/report
      */
-    @PostMapping("/{id}/report")
-    public ResponseEntity<String> reportPost(@PathVariable Long id,
+    @PostMapping("/{boardType}/{postId}/report")
+    public ResponseEntity<String> reportPost(@PathVariable Long postId,
+                                             @PathVariable String boardType,
                                              @RequestParam String reason,
                                              @RequestParam String reporterId) {
-        PostReportDTO reportDTO = new PostReportDTO(id, reporterId, reason);
-        postReportService.addReport(reportDTO);
+        postReportService.addReport(boardType,postId,reporterId, reason);
         return ResponseEntity.ok("게시글이 성공적으로 신고되었습니다.");
     }
 }
