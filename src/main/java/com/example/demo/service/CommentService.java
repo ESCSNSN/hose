@@ -5,6 +5,7 @@ import com.example.demo.dto.CommentReportDTO;
 import com.example.demo.entity.CommentEntity;
 import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.repository.CommentRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -93,5 +94,15 @@ public class CommentService {
     public void reportComment(String boardType, Long postId, Long commentId, String reporterId, String reason) {
         CommentReportDTO reportDTO = new CommentReportDTO(commentId, boardType, postId, reporterId, reason, 1);
         commentReportService.addReport(reportDTO);
+    }
+
+    /**
+     * 특정 게시물에 속한 모든 댓글 삭제
+     * @param targetType 댓글이 속한 게시물 유형 (예: "Coding", "Notice")
+     * @param targetId   게시물 ID
+     */
+    @Transactional
+    public void deleteCommentsByTarget(String targetType, Long targetId) {
+        commentRepository.deleteByTargetTypeAndTargetId(targetType, targetId);
     }
 }

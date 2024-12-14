@@ -2,7 +2,10 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.CompetitionDTO;
+import com.example.demo.entity.CodingEntity;
+import com.example.demo.entity.CompetitionEntity;
 import com.example.demo.exception.UnauthorizedDeletionException;
+import com.example.demo.repository.CompetitionRepository;
 import com.example.demo.service.CommentService;
 import com.example.demo.service.CompetitionService;
 // 불필요한 임포트 제거
@@ -26,6 +29,7 @@ public class CompetitionController {
 
     private final CompetitionService competitionService;
     private final CommentService commentService;
+    private final CompetitionRepository competitionRepository;
 
     // GET /board/competition
     @GetMapping("/competition")
@@ -126,6 +130,12 @@ public class CompetitionController {
     // GET /board/competition/delete/{id}
     @GetMapping("/competition/delete/{id}")
     public String delete(@PathVariable Long id) {
+        // 게시물 엔티티 조회
+        CompetitionEntity post = competitionRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        // 게시물에 해당하는 댓글 삭제
+        commentService.deleteCommentsByTarget("Coding", id);
         competitionService.delete(id);
         return "redirect:/board/competition";
     }

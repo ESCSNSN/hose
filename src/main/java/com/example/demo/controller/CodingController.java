@@ -2,7 +2,9 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.CodingDTO;
 import com.example.demo.dto.CommentDTO;
+import com.example.demo.entity.CodingEntity;
 import com.example.demo.exception.UnauthorizedDeletionException;
+import com.example.demo.repository.CodingRepository;
 import com.example.demo.service.CodingService;
 import com.example.demo.service.CommentService;
 import com.example.demo.service.PostReportService;
@@ -26,6 +28,7 @@ public class CodingController {
     private final CodingService codingService;
     private final CommentService commentService;
     private final PostReportService postReportService;
+    private final CodingRepository codingRepository;
 
     // GET /api/board/coding
     @GetMapping("/coding")
@@ -92,7 +95,16 @@ public class CodingController {
     // DELETE /api/board/coding/delete/{id}
     @DeleteMapping("/coding/delete/{id}")
     public void delete(@PathVariable Long id) {
+
+        // 게시물 엔티티 조회
+
+        CodingEntity post = codingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        // 게시물에 해당하는 댓글 삭제
+        commentService.deleteCommentsByTarget("Coding", id);
         codingService.delete(id);
+
     }
 
     // POST /api/board/coding/{id}/like
