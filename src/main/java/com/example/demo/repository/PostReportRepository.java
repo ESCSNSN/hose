@@ -4,7 +4,11 @@ import com.example.demo.entity.PostReportEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
+import java.util.Optional;
+import java.util.List;
+
 public interface PostReportRepository extends JpaRepository<PostReportEntity, Long> {
-    // 추가적인 쿼리가 필요하다면 여기에 작성
+    // 특정 게시물과 신고자 ID로 신고 검색
+    Optional<PostReportEntity> findByPostIdAndReporterId(Long postId, String reporterId);
+    List<PostReportEntity> findByPostId(Long postId);
 }

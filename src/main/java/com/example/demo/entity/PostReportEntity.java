@@ -1,34 +1,32 @@
 package com.example.demo.entity;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import jakarta.persistence.*;
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "post_reports")
 @Getter
 @Setter
+@Table(name = "post_reports")
 public class PostReportEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long postId;
-    private String reporterId;
-    private String reason;
-    private LocalDateTime reportedAt;
+    @Column(nullable = false)
+    private Long postId; // 게시물 ID
 
-    // 기본 생성자
-    public PostReportEntity() {}
+    @Column(nullable = false)
+    private String reporterId; // 신고자 ID
 
-    // 신고 정보를 설정하는 생성자
-    public PostReportEntity(Long postId, String reporterId, String reason) {
-        this.postId = postId;
-        this.reporterId = reporterId;
-        this.reason = reason;
-        this.reportedAt = LocalDateTime.now();
-    }
+    @Column(nullable = false, length = 500)
+    private String reason; // 신고 사유
+
+    @Column(nullable = false)
+    private String boardType; // 게시판 유형
+
+    @Column(nullable = false)
+    private int reportCount = 0; // 신고 횟수
 }
+

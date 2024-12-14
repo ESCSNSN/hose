@@ -62,4 +62,5 @@ public class CommentEntity {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
 }
