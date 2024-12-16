@@ -4,10 +4,14 @@ import com.example.demo.entity.LectureTime;
 import com.example.demo.entity.Room;
 import com.example.demo.repository.LectureTimeRepository;
 import com.example.demo.repository.RoomRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class RoomService {
@@ -28,7 +32,7 @@ public class RoomService {
     }
 
     // 특정 강의실에 강의 시간 추가 (관리자 전용)
-    public LectureTime addLectureTime(String roomNumber, LocalTime startTime, LocalTime endTime, String lectureName) {
+    public LectureTime addLectureTime(String roomNumber, LocalTime startTime, LocalTime endTime, String lectureName, String dayOfWeek) {
         Room room = roomRepository.findById(roomNumber)
                 .orElseThrow(() -> new IllegalArgumentException("해당 강의실이 존재하지 않습니다."));
 
@@ -37,14 +41,30 @@ public class RoomService {
         lectureTime.setEndTime(endTime);
         lectureTime.setLectureName(lectureName);
         lectureTime.setRoom(room);
+        lectureTime.setDayOfWeek(DayOfWeek.valueOf(dayOfWeek));
+
 
         return lectureTimeRepository.save(lectureTime);
     }
 
-    // 특정 강의실의 강의 시간 조회 (프론트 요청용)
-    public List<LectureTime> getLectureTimesForRoom(String roomNumber) {
-        Room room = roomRepository.findById(roomNumber)
-                .orElseThrow(() -> new IllegalArgumentException("해당 강의실이 존재하지 않습니다."));
-        return lectureTimeRepository.findByRoom(room);
+    // 모든 강의실과 강의 시간 조회
+    @Transactional
+    public List<Map<String, Object>> getAllRoomsWithLectureTimes() {
+        List<Room> rooms = roomRepository.findAll();
+
+        // 모든 강의실과 해당 강의 시간을 매핑
+        return rooms.stream().map(room -> {
+            Map<String, Object> roomMap = Map.of(
+                    "roomNumber", room.getRoomNumber(),
+                    "lectureTimes", room.getLectureTimes().stream().map(lectureTime -> Map.of(
+                            "id", lectureTime.getId(),
+                            "lectureName", lectureTime.getLectureName(),
+                            "startTime", lectureTime.getStartTime().toString(),
+                            "endTime", lectureTime.getEndTime().toString(),
+                            "dayOfWeek", lectureTime.getDayOfWeek().toString()
+                    )).collect(Collectors.toList())
+            );
+            return roomMap;
+        }).collect(Collectors.toList());
     }
 }

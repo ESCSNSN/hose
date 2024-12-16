@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Map;
 import java.time.LocalTime;
@@ -96,14 +97,16 @@ public class AdminController {
     /**
      * 특정 강의실에 강의 시간 추가 (관리자 전용)
      * URL: POST /api/admin/rooms/{roomNumber}/lectures/add
-     * 예: /api/admin/rooms/102/lectures/add?startTime=09:00&endTime=10:30&lectureName=알고리즘
+     * 예: /api/admin/rooms/102/lectures/add?startTime=09:00&endTime=10:00&lectureName=자료구조&dayOfWeek=MONDAY
      */
     @PostMapping("/rooms/{roomNumber}/lectures/add")
     public ResponseEntity<Map<String, Object>> addLectureTime(@PathVariable String roomNumber,
                                                               @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime startTime,
                                                               @RequestParam @DateTimeFormat(pattern = "HH:mm") LocalTime endTime,
-                                                              @RequestParam String lectureName) {
-        LectureTime lectureTime = roomService.addLectureTime(roomNumber, startTime, endTime, lectureName);
+                                                              @RequestParam String lectureName,
+                                                              @RequestParam DayOfWeek dayOfWeek)
+            {
+        LectureTime lectureTime = roomService.addLectureTime(roomNumber, startTime, endTime, lectureName, String.valueOf(dayOfWeek));
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", lectureTime.getId());
@@ -111,6 +114,7 @@ public class AdminController {
         response.put("lectureName", lectureTime.getLectureName());
         response.put("startTime", lectureTime.getStartTime().toString());
         response.put("endTime", lectureTime.getEndTime().toString());
+        response.put("dayOfWeek", lectureTime.getDayOfWeek().toString());
 
         return ResponseEntity.ok(response);
     }

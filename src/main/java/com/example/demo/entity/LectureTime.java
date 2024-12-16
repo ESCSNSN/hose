@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 @Entity
@@ -17,6 +18,8 @@ public class LectureTime {
     private LocalTime startTime;  // 강의 시작 시간 (예: 09:00)
     private LocalTime endTime;    // 강의 종료 시간 (예: 10:30)
     private String lectureName;   // 강의명 또는 수업명 (관리자가 추가할 때 입력 가능)
+    @Enumerated(EnumType.STRING)
+    private DayOfWeek dayOfWeek;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_number")
