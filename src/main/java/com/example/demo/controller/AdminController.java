@@ -4,11 +4,10 @@ import com.example.demo.dto.CommentReportDTO;
 import com.example.demo.dto.PostReportDTO;
 import com.example.demo.entity.LectureTime;
 import com.example.demo.entity.Room;
-import com.example.demo.service.CommentReportService;
-import com.example.demo.service.PostReportService;
-import com.example.demo.service.RoomService;
+import com.example.demo.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +27,9 @@ public class AdminController {
     private final CommentReportService commentReportService;
     private final PostReportService postReportService;
     private final RoomService roomService;
+    private final CodingService codingService;
+    private final CommentService commentService;
+    private final CompetitionService competitionService;
 
     /**
      * 모든 댓글 신고 목록 조회
@@ -111,6 +113,68 @@ public class AdminController {
         response.put("endTime", lectureTime.getEndTime().toString());
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 관리자용 코딩 게시물 삭제
+     * 예: DELETE /api/admin/coding/{id}
+     * 해당 게시물 및 관련 댓글들을 관리자 권한으로 삭제
+     */
+    @DeleteMapping("/coding/{id}")
+    public ResponseEntity<String> deleteCodingPostByAdmin(@PathVariable Long id) {
+        try {
+            // 게시물 존재 여부 검증 및 삭제 로직 (관리자용)
+            codingService.deleteByAdmin(id);
+            return ResponseEntity.ok("코딩 게시물이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("게시물을 찾을 수 없습니다.");
+        }
+    }
+
+    /**
+     * 관리자용 코딩 게시물의 특정 댓글 삭제
+     * 예: DELETE /api/admin/coding/{id}/comments/{commentId}
+     * userId 없이도 관리자 권한으로 해당 댓글 삭제
+     */
+    @DeleteMapping("/coding/{id}/comments/{commentId}")
+    public ResponseEntity<String> deleteCodingCommentByAdmin(@PathVariable Long id,
+                                                             @PathVariable Long commentId) {
+        try {
+            // 관리자용 댓글 삭제 로직
+            commentService.deleteCommentByAdmin(commentId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("댓글을 찾을 수 없습니다.");
+        }
+    }
+
+    /**
+     * 관리자용 대회 게시물 삭제
+     * 예: DELETE /api/admin/competition/{id}
+     */
+    @DeleteMapping("/competition/{id}")
+    public ResponseEntity<String> deleteCompetitionPostByAdmin(@PathVariable Long id) {
+        try {
+            competitionService.deleteByAdmin(id);
+            return ResponseEntity.ok("대회 게시물이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("게시물을 찾을 수 없습니다.");
+        }
+    }
+
+    /**
+     * 관리자용 대회 게시물 특정 댓글 삭제
+     * 예: DELETE /api/admin/competition/{id}/comments/{commentId}
+     */
+    @DeleteMapping("/competition/{id}/comments/{commentId}")
+    public ResponseEntity<String> deleteCompetitionCommentByAdmin(@PathVariable Long id,
+                                                                  @PathVariable Long commentId) {
+        try {
+            commentService.deleteCommentByAdmin(commentId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("댓글을 찾을 수 없습니다.");
+        }
     }
 
 

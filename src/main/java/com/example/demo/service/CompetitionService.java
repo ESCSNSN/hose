@@ -93,6 +93,10 @@ public class CompetitionService {
         competitionRepository.deleteById(id);
     }
 
+    public void deleteByAdmin(Long id) {
+        competitionRepository.deleteById(id);
+    }
+
     public Page<CompetitionDTO> paging(Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 5; // 한 페이지에 보여줄 글 갯수

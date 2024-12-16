@@ -57,6 +57,18 @@ public class CommentService {
     }
 
     /**
+     * 관리자가 댓글 삭제
+     *
+     * @param commentId 삭제할 댓글 ID
+     */
+
+    public void deleteCommentByAdmin(Long commentId) {
+        CommentEntity comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid comment ID"));
+        commentRepository.delete(comment);
+    }
+
+    /**
      * 특정 게시판의 댓글 목록 가져오기 (대댓글 포함)
      *
      * @param targetType 게시판 유형

@@ -86,6 +86,10 @@ public class CodingService {
         codingRepository.deleteById(id);
     }
 
+    public void deleteByAdmin(Long id) {
+        codingRepository.deleteById(id);
+    }
+
     public Page<CodingDTO> paging(Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
