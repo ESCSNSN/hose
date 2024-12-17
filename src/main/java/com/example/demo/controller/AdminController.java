@@ -120,6 +120,51 @@ public class AdminController {
     }
 
     /**
+     * 특정 강의 이름으로 강의 삭제
+     * URL: DELETE /api/admin/lectures/delete-by-name
+     * 예: /api/admin/lectures/delete-by-name?lectureName=자료구조
+     */
+    @DeleteMapping("/lectures/delete-by-name")
+    public ResponseEntity<Map<String, Object>> deleteLecturesByName(@RequestParam String lectureName) {
+        try {
+            int deletedCount = roomService.deleteLecturesByName(lectureName);
+            if (deletedCount == 0) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        Map.of("message", "No lectures found with the name '" + lectureName + "'."));
+            }
+            return ResponseEntity.ok(Map.of(
+                    "message", "Lectures with name '" + lectureName + "' have been deleted successfully.",
+                    "deletedCount", deletedCount
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    Map.of("message", "Internal server error."));
+        }
+    }
+
+    /**
+     * 모든 강의실 모든 강의 삭제
+     * URL: DELETE /api/admin/lectures/delete-all
+     * 예: /api/admin/lectures/delete-all
+     */
+
+    @DeleteMapping("/lectures/delete-all")
+    public ResponseEntity<Map<String, String>> deleteAllLectures() {
+        try {
+            int deletedCount = roomService.deleteAllLectures();
+            return ResponseEntity.ok(Map.of(
+                    "message", "All lectures have been deleted successfully.",
+                    "deletedCount", String.valueOf(deletedCount)
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    Map.of("message", "Internal server error."));
+        }
+    }
+
+
+
+    /**
      * 관리자용 코딩 게시물 삭제
      * 예: DELETE /api/admin/coding/{id}
      * 해당 게시물 및 관련 댓글들을 관리자 권한으로 삭제

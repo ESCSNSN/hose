@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface LectureTimeRepository extends JpaRepository<LectureTime, Long> {
     List<LectureTime> findByRoom(Room room);
+    List<LectureTime> findByLectureName(String lectureName);
 }

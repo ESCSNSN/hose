@@ -67,4 +67,22 @@ public class RoomService {
             return roomMap;
         }).collect(Collectors.toList());
     }
+
+    // 특정 강의 이름으로 강의 삭제
+    public int deleteLecturesByName(String lectureName) {
+        List<LectureTime> lectures = lectureTimeRepository.findByLectureName(lectureName);
+        if (lectures.isEmpty()) {
+            return 0; // 삭제할 강의가 없을 경우
+        }
+        lectureTimeRepository.deleteAll(lectures);
+        return lectures.size(); // 삭제한 강의 개수를 반환
+    }
+
+    // 모든 강의 삭제
+    public int deleteAllLectures() {
+        List<LectureTime> allLectures = lectureTimeRepository.findAll(); // 모든 강의 조회
+        int count = allLectures.size(); // 삭제 전 강의 수
+        lectureTimeRepository.deleteAll(); // 모든 강의 삭제
+        return count; // 삭제한 강의 수 반환
+    }
 }
