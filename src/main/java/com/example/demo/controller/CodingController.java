@@ -8,6 +8,7 @@ import com.example.demo.repository.CodingRepository;
 import com.example.demo.service.CodingService;
 import com.example.demo.service.CommentService;
 import com.example.demo.service.PostReportService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -165,7 +166,8 @@ public class CodingController {
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
                                                  @RequestParam(required = false) Long parentCommentId,
                                                  @RequestParam String content,
-                                                 @RequestParam String userId) {
+                                                 HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         CommentDTO commentDTO = new CommentDTO();
         commentDTO.setContent(content);
         commentDTO.setUserId(userId);
@@ -180,7 +182,8 @@ public class CodingController {
     @PostMapping("/coding/{id}/comments/{commentId}/delete")
     public ResponseEntity<String> deleteComment(@PathVariable Long id,
                                                 @PathVariable Long commentId,
-                                                @RequestParam String userId) {
+                                                HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         try {
             commentService.deleteComment(commentId, userId);
             return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");

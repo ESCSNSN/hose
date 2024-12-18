@@ -36,9 +36,7 @@ public class TokenValidationInterceptor implements HandlerInterceptor {
         // AUTH 서비스에 토큰 검증 요청
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        // Authorization 헤더에 다시 Bearer 토큰을 붙일 필요는 없지만
-        // 필요하다면 아래 주석을 해제하세요.
-        // headers.add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+
 
         // token 파라미터를 폼 형식으로 전달
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();

@@ -22,7 +22,10 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(tokenValidationInterceptor)
                 .addPathPatterns("/api/rooms/**") // 보호할 엔드포인트
-                .excludePathPatterns("/api/auth/**"); // AUTH 엔드포인트 제외
+                .addPathPatterns("/api/board/**") // 보호할 엔드포인트
+                .addPathPatterns("/api/coding/**") // 보호할 엔드포인트
+                .addPathPatterns("/api/competition/**") // 보호할 엔드포인트
+                .excludePathPatterns("/api/auth/**","/api/notice/**"); // AUTH 엔드포인트 제외
     }
 
 
