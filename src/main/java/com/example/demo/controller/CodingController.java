@@ -72,7 +72,9 @@ public class CodingController {
 
     // POST /api/board/coding/save
     @PostMapping(value = "/coding/save", consumes = {"multipart/form-data"})
-    public ResponseEntity<CodingDTO> save(@ModelAttribute CodingDTO codingDTO) throws IOException {
+    public ResponseEntity<CodingDTO> save(@ModelAttribute CodingDTO codingDTO, HttpServletRequest request) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        codingDTO.setUserID(userId);
         codingService.save(codingDTO);
         return ResponseEntity.ok(codingDTO); // 200 OK
     }

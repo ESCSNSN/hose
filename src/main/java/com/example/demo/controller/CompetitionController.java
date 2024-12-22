@@ -71,7 +71,9 @@ public class CompetitionController {
 
     // POST /api/board/coding/save
     @PostMapping(value = "/competition/save", consumes = {"multipart/form-data"})
-    public ResponseEntity<CompetitionDTO> save(@ModelAttribute CompetitionDTO competitionDTO) throws IOException {
+    public ResponseEntity<CompetitionDTO> save(@ModelAttribute CompetitionDTO competitionDTO, HttpServletRequest request) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        competitionDTO.setUserId(userId);
         competitionService.save(competitionDTO);
         return ResponseEntity.ok(competitionDTO); // 200 OK
     }
@@ -117,7 +119,8 @@ public class CompetitionController {
     @PostMapping("/competition/{id}/like")
     public ResponseEntity<Void> likeQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         competitionService.increaseLike(id);
         return ResponseEntity.ok().build(); // 200 OK
     }
@@ -126,7 +129,8 @@ public class CompetitionController {
     @PostMapping("/competition/{id}/scrap")
     public ResponseEntity<Void> scrapQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         competitionService.toggleScrap(id);
         return ResponseEntity.ok().build(); // 200 OK
     }

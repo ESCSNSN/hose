@@ -27,7 +27,7 @@ public class FreeController {
     private final FreeService freeService;
     private final CommentService commentService;
 
-    // GET /api/board/coding
+    // GET /api/board/free
     @GetMapping("/free")
     public Page<FreeDTO> paging(@RequestParam(value = "page", required = false) Integer page,
                                 @RequestParam(value = "size", defaultValue = "10") Integer size,
@@ -56,27 +56,29 @@ public class FreeController {
         return freeList;
     }
 
-    // GET /api/board/coding/save
+    // GET /api/board/free/save
     @GetMapping("/free/save")
     public FreeDTO saveForm() {
         return new FreeDTO(); // 기본 구조의 CodingDTO 반환
     }
 
-    // POST /api/board/coding/save
+    // POST /api/board/free/save
     @PostMapping(value = "/free/save", consumes = {"multipart/form-data"})
-    public ResponseEntity<FreeDTO> save(@ModelAttribute FreeDTO freeDTO) throws IOException {
+    public ResponseEntity<FreeDTO> save(@ModelAttribute FreeDTO freeDTO, HttpServletRequest request) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        freeDTO.setUserID(userId);
         freeService.save(freeDTO);
         return ResponseEntity.ok(freeDTO); // 200 OK
     }
 
 
-    // GET /api/board/coding/{id}
+    // GET /api/board/free/{id}
     @GetMapping("/free/{id}")
     public FreeDTO findById(@PathVariable Long id) {
         return freeService.findByID(id);
     }
 
-    // GET /api/board/notice/update/{id} (업데이트 폼 요청)
+    // GET /api/board/free/update/{id} (업데이트 폼 요청)
     @GetMapping("/free/update/{id}")
     public ResponseEntity<FreeDTO> updateForm(
             @PathVariable Long id,

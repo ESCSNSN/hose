@@ -66,7 +66,9 @@ public class QuestController {
 
     // POST /api/board/quest/save
     @PostMapping(value = "/quest/save", consumes = {"multipart/form-data"})
-    public ResponseEntity<QuestDTO> save(@ModelAttribute QuestDTO questDTO) throws IOException {
+    public ResponseEntity<QuestDTO> save(@ModelAttribute QuestDTO questDTO, HttpServletRequest request) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        questDTO.setUserID(userId);
         questService.save(questDTO);
         return ResponseEntity.ok(questDTO); // 200 OK
     }

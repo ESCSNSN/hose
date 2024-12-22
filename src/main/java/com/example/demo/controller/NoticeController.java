@@ -56,7 +56,13 @@ public class NoticeController {
 
 
     @PostMapping(value = "/notice/save", consumes = {"multipart/form-data"})
-    public ResponseEntity<NoticeDTO> save(@ModelAttribute NoticeDTO noticeDTO) throws IOException {
+    public ResponseEntity<NoticeDTO> save(@ModelAttribute NoticeDTO noticeDTO, HttpServletRequest request) throws IOException {
+        String role = (String) request.getAttribute("role");
+        if (!"admin".equalsIgnoreCase(role)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied: Admin Role Required");
+        }
+        String userId = (String) request.getAttribute("username");
+        noticeDTO.setUserId(userId);
         noticeService.save(noticeDTO);
         return ResponseEntity.ok(noticeDTO); // 200 OK
     }
