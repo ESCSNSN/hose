@@ -11,4 +11,5 @@ public interface PostReportRepository extends JpaRepository<PostReportEntity, Lo
     // 특정 게시물과 신고자 ID로 신고 검색
     Optional<PostReportEntity> findByPostIdAndReporterId(Long postId, String reporterId);
     List<PostReportEntity> findByPostId(Long postId);
+    void deleteByPostId (Long postId);
 }

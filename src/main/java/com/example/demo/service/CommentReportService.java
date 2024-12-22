@@ -6,6 +6,8 @@ import com.example.demo.entity.CommentEntity;
 import com.example.demo.repository.CommentReportRepository;
 import com.example.demo.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import jakarta.transaction.Transactional;
@@ -19,6 +21,7 @@ public class CommentReportService {
 
     private final CommentReportRepository commentReportRepository;
     private final CommentRepository commentRepository;
+    private static final Logger logger = LoggerFactory.getLogger(CommentReportService.class);
 
     /**
      * 댓글 신고 추가 또는 업데이트
@@ -74,6 +77,17 @@ public class CommentReportService {
         return commentReportRepository.findByCommentId(commentId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void rejectAllReportsByCommentId(Long commentId) {
+        List<CommentReportEntity> reports = commentReportRepository.findByCommentId(commentId);
+        if (reports.isEmpty()) {
+            throw new IllegalArgumentException("이 댓글에 대한 신고가 없습니다.: " + commentId);
+        }
+        commentReportRepository.deleteByCommentId(commentId);
+        logger.info("댓글 ID={}에 대한 모든 신고를 삭제했습니다.", commentId);
+
     }
 
     /**

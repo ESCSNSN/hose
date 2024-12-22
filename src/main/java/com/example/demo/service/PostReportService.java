@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +19,7 @@ import java.util.stream.Collectors;
 public class PostReportService {
 
     private final PostReportRepository postReportRepository;
+    private static final Logger logger = LoggerFactory.getLogger(PostReportService.class);
 
     /**
      * 게시물 신고 추가 또는 업데이트
@@ -65,6 +68,22 @@ public class PostReportService {
         return postReportRepository.findByPostId(postId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * 게시물 신고 삭제
+     *
+     * @param postId 삭제할 게시물 ID
+     */
+
+    @Transactional
+    public void rejectAllReports(Long postId) {
+        List<PostReportEntity> reports = postReportRepository.findByPostId(postId);
+        if (reports.isEmpty()) {
+            throw new IllegalArgumentException("이 게시물에 대한 신고가 없습니다: " + postId);
+        }
+        postReportRepository.deleteByPostId(postId);
+        logger.info("게시물 ID={}에 대한 모든 신고를 삭제했습니다.", postId);
     }
 
     /**

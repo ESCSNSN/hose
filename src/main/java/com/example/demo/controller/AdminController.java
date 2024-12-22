@@ -228,6 +228,35 @@ public class AdminController {
         }
     }
 
+    /**
+     * 특정 댓글에 대한 모든 신고 반려 (삭제)
+     * URL: DELETE /api/admin/comment-reports/{commentId}
+     *
+     * @param commentId 댓글 ID
+     * @return 성공 메시지
+     */
+
+    @DeleteMapping("/comment-reports/comment/{commentId}")
+    public ResponseEntity<Map<String, String>> rejectAllReportsByCommentId(@PathVariable Long commentId){
+        commentReportService.rejectAllReportsByCommentId(commentId);
+        return ResponseEntity.ok(Map.of("message", "신고가 모두 반려되었습니다."));
+    }
+
+    /**
+     * 특정 게시물에 대한 모든 신고 반려 (삭제)
+     * URL: DELETE /api/admin/post-reports/{postId}
+     *
+     * @param postId 게시물 ID
+     * @return 성공 메시지
+     */
+    @DeleteMapping("/post-reports/post/{postId}")
+    public ResponseEntity<Map<String, String>> rejectAllReportsByPostId(@PathVariable Long postId){
+        postReportService.rejectAllReports(postId);
+        return ResponseEntity.ok(Map.of("message", "신고가 모두 반려되었습니다."));
+    }
+
+
+
 
 
 }

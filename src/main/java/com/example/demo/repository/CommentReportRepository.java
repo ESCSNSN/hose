@@ -13,4 +13,5 @@ public interface CommentReportRepository extends JpaRepository<CommentReportEnti
     // 같은 사용자, 같은 댓글에 대한 신고가 있는지 확인
     Optional<CommentReportEntity> findByCommentIdAndReporterId(Long commentId, String reporterId);
     List<CommentReportEntity> findByCommentId(Long commentId);
+    void deleteByCommentId(Long commentId);
 }
