@@ -8,8 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
@@ -57,11 +59,12 @@ public class FreeController {
     }
 
     // POST /api/board/coding/save
-    @PostMapping("/free/save")
-    public FreeDTO save(@RequestBody FreeDTO freeDTO) throws IOException {
+    @PostMapping(value = "/free/save", consumes = {"multipart/form-data"})
+    public ResponseEntity<FreeDTO> save(@ModelAttribute FreeDTO freeDTO) throws IOException {
         freeService.save(freeDTO);
-        return freeDTO; // 저장된 CodingDTO 반환
+        return ResponseEntity.ok(freeDTO); // 200 OK
     }
+
 
     // GET /api/board/coding/{id}
     @GetMapping("/free/{id}")
@@ -69,10 +72,13 @@ public class FreeController {
         return freeService.findByID(id);
     }
 
-    // GET /api/board/coding/update/{id}
+    // GET /api/board/notice/update/{id} (업데이트 폼 요청)
     @GetMapping("/free/update/{id}")
-    public FreeDTO updateForm(@PathVariable Long id) {
-        return freeService.findByID(id);
+    public ResponseEntity<FreeDTO> updateForm(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        FreeDTO freeDTO = freeService.findByID(id, userId);
+        return ResponseEntity.ok(freeDTO);
     }
 
     // POST /api/board/coding/update
@@ -81,23 +87,35 @@ public class FreeController {
         return freeService.update(freeDTO); // 업데이트된 CodingDTO 반환
     }
 
-    // DELETE /api/board/coding/delete/{id}
+    // DELETE /api/board/free/delete/{id}
     @DeleteMapping("/free/delete/{id}")
-    public void delete(@PathVariable Long id) {
-        freeService.delete(id);
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        boolean isDeleted = freeService.delete(id, userId);
+        if (isDeleted) {
+            return ResponseEntity.noContent().build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "사용자 권한이 없습니다.");
+        }
     }
 
-    // POST /api/board/coding/{id}/like
+    // POST /api/board/free/{id}/like
     @PostMapping("/free/{id}/like")
-    public void likeFree(@PathVariable Long id) {
+    public ResponseEntity<Void> likeQuest(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
         freeService.increaseLike(id);
+        return ResponseEntity.ok().build(); // 200 OK
     }
 
-
-    // POST /api/board/coding/{id}/scrap
+    // POST /api/board/free/{id}/scrap
     @PostMapping("/free/{id}/scrap")
-    public void scrapFree(@PathVariable Long id) {
+    public ResponseEntity<Void> scrapQuest(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
         freeService.toggleScrap(id);
+        return ResponseEntity.ok().build(); // 200 OK
     }
 
     @GetMapping("/free/top-liked")

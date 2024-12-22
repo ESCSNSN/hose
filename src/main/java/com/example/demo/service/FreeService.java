@@ -9,8 +9,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
@@ -68,14 +70,36 @@ public class FreeService {
         }
     }
 
+
+    @Transactional
+    public FreeDTO findByID(Long id, String userId) {
+        FreeEntity free = freeRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        if (!free.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "퀘스트에 대한 접근 권한이 없습니다.");
+        }
+        FreeDTO freeDTO = FreeDTO.toFreeDTO(free);
+        return freeDTO;
+    }
+
     public FreeDTO update(FreeDTO freeDTO) {
         FreeEntity freeEntity = FreeEntity.toUpdatedEntity(freeDTO);
         freeRepository.save(freeEntity);
         return findByID(freeDTO.getId());
     }
 
-    public void delete(Long id) {
-        freeRepository.deleteById(id);
+    @Transactional
+    public boolean delete(Long id, String userId) {
+        Optional<FreeEntity> optionalQuest = freeRepository.findById(id);
+        if (optionalQuest.isPresent()) {
+            FreeEntity free = optionalQuest.get();
+            if (free.getUserId().equals(userId)) {
+                freeRepository.delete(free);
+                return true;
+            }
+        }
+        return false;
     }
 
     public Page<FreeDTO> paging(Pageable pageable) {

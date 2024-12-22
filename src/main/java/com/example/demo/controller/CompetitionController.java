@@ -19,12 +19,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/board")
+@RequestMapping("/api/board")
 public class CompetitionController {
 
     private final CompetitionService competitionService;
@@ -33,12 +34,12 @@ public class CompetitionController {
 
     // GET /board/competition
     @GetMapping("/competition")
-    public String paging(@RequestParam(value = "page", required = false) Integer page,
-                         @RequestParam(value = "size", defaultValue = "10") Integer size,
-                         Model model,
-                         @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
-                         @RequestParam(value = "contentKeyword", required = false) String contentKeyword,
-                         @RequestParam(value = "hashtagKeyword", required = false) String hashtagKeyword) {
+    public Page<CompetitionDTO> paging(@RequestParam(value = "page", required = false) Integer page,
+                                       @RequestParam(value = "size", defaultValue = "10") Integer size,
+                                       Model model,
+                                       @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
+                                       @RequestParam(value = "contentKeyword", required = false) String contentKeyword,
+                                       @RequestParam(value = "hashtagKeyword", required = false) String hashtagKeyword) {
 
         // page와 size가 null이거나 음수일 경우 기본값을 설정
         if (page == null || page < 0) {
@@ -61,98 +62,70 @@ public class CompetitionController {
             competitionList = competitionService.searchByTitleOrContents(searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
 
-        // 페이지 네비게이션 계산
-        int blockLimit = 3;
-        int currentPage = competitionList.getNumber(); // 0-based index
-        int startPage = (currentPage / blockLimit) * blockLimit + 1;
-        int endPage = Math.min(startPage + blockLimit - 1, competitionList.getTotalPages());
 
-        // 모델에 필요한 속성 추가
-        model.addAttribute("competitionList", competitionList);
-        model.addAttribute("startPage", startPage);
-        model.addAttribute("endPage", endPage);
-        model.addAttribute("searchKeyword", searchKeyword);
-        model.addAttribute("contentKeyword", contentKeyword);
-        model.addAttribute("hashtagKeyword", hashtagKeyword);
 
-        return "competition";
+        return competitionList;
     }
 
-    // GET /board/competition/save
-    @GetMapping("/competition/save")
-    public String saveForm(Model model) {
-        // BoardService 주입이 필요하다면 추가
-        // 예: List<Board> boards = boardService.getAllBoards();
-        // model.addAttribute("boards", boards);
-        model.addAttribute("competitionDTO", new CompetitionDTO());
-        return "Csave"; // 템플릿 이름에 맞게 변경
-    }
 
-    // POST /board/competition/save
-    @PostMapping("/competition/save")
-    public String save(@ModelAttribute CompetitionDTO competitionDTO) throws IOException {
+    // POST /api/board/coding/save
+    @PostMapping(value = "/competition/save", consumes = {"multipart/form-data"})
+    public ResponseEntity<CompetitionDTO> save(@ModelAttribute CompetitionDTO competitionDTO) throws IOException {
         competitionService.save(competitionDTO);
-        return "redirect:/board/competition";
+        return ResponseEntity.ok(competitionDTO); // 200 OK
     }
 
-    // GET /board/competition/{id}
     @GetMapping("/competition/{id}")
-    public String findById(@PathVariable Long id, Model model,
-                           @RequestParam(value = "page", defaultValue = "0") int page) {
+    public CompetitionDTO findById(@PathVariable Long id) {return competitionService.findByID(id);}
 
-        CompetitionDTO competitionDTO = competitionService.findByID(id);
-        model.addAttribute("competition", competitionDTO);
-        model.addAttribute("page", page);
-        return "Cdetail"; // 템플릿 이름에 맞게 변경
+    // GET /api/board/competition/update/{id} (업데이트 폼 요청)
+    @GetMapping("/free/competition/{id}")
+    public ResponseEntity<CompetitionDTO> updateForm(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        CompetitionDTO competitionDTO = competitionService.findByID(id, userId);
+        return ResponseEntity.ok(competitionDTO);
     }
 
-    // GET /board/competition/update/{id}
-    @GetMapping("/competition/update/{id}")
-    public String updateForm(@PathVariable Long id, Model model,
-                             @RequestParam(value = "page", defaultValue = "0") int page) {
-        CompetitionDTO competitionDTO = competitionService.findByID(id);
-        model.addAttribute("competitionUpdate", competitionDTO);
-        model.addAttribute("page", page);
-        // BoardService 주입이 필요하다면 추가
-        // 예: List<Board> boards = boardService.getAllBoards();
-        // model.addAttribute("boards", boards);
-        return "Cupdate"; // 템플릿 이름에 맞게 변경
+   @PostMapping("/competition/update")
+   public CompetitionDTO update(@ModelAttribute CompetitionDTO competitionDTO) {
+        return competitionService.update(competitionDTO);
+   }
+
+
+    // DELETE /api/board/notice/delete/{id}
+    @DeleteMapping("/competition/delete/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        boolean isDeleted = competitionService.delete(id, userId);
+        if (isDeleted) {
+            // 게시물에 해당하는 댓글 삭제
+            commentService.deleteCommentsByTarget("Coding", id);
+            return ResponseEntity.noContent().build();
+
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "사용자 권한이 없습니다.");
+        }
     }
 
-    // POST /board/competition/update
-    @PostMapping("/competition/update")
-    public String update(@ModelAttribute CompetitionDTO competitionDTO, Model model) {
-        CompetitionDTO competition = competitionService.update(competitionDTO);
-        model.addAttribute("competition", competition);
-        return "redirect:/board/competition"; // 성공 시 목록으로 리다이렉트
-    }
 
-    // GET /board/competition/delete/{id}
-    @GetMapping("/competition/delete/{id}")
-    public String delete(@PathVariable Long id) {
-        // 게시물 엔티티 조회
-        CompetitionEntity post = competitionRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
-
-        // 게시물에 해당하는 댓글 삭제
-        commentService.deleteCommentsByTarget("Coding", id);
-        competitionService.delete(id);
-        return "redirect:/board/competition";
-    }
-
-    // POST /board/competition/{id}/like
+    // POST /api/board/competition/{id}/like
     @PostMapping("/competition/{id}/like")
-    public String likeCompetition(@PathVariable Long id, @RequestParam(value = "page", defaultValue = "0") int page) {
-        competitionService.toggleLike(id);
-        return "redirect:/board/competition/" + id + "?page=" + page;
+    public ResponseEntity<Void> likeQuest(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        competitionService.increaseLike(id);
+        return ResponseEntity.ok().build(); // 200 OK
     }
 
-    // POST /board/competition/{id}/scrap
+    // POST /api/board/competition/{id}/scrap
     @PostMapping("/competition/{id}/scrap")
-    public String scrapCompetition(@PathVariable Long id, @RequestParam(value = "page", defaultValue = "0") int page) {
+    public ResponseEntity<Void> scrapQuest(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
         competitionService.toggleScrap(id);
-        return "redirect:/board/competition/" + id + "?page=" + page;
-
+        return ResponseEntity.ok().build(); // 200 OK
     }
 
     // POST /api/board/competition/{id}/comments/add

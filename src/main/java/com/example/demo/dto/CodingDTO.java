@@ -2,6 +2,7 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.CodingEntity;
 import com.example.demo.entity.CodingFileEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +30,7 @@ public class CodingDTO {
     private int scrap;
     private int codingLike;
 
+    @JsonIgnore
     private List<MultipartFile> codingFile;
     private List<String> originalFileName;
     private List<String> storedFileName;

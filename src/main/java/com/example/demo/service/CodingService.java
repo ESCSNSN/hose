@@ -3,10 +3,8 @@ package com.example.demo.service;
 
 import com.example.demo.dto.CodingDTO;
 import com.example.demo.dto.CompetitionDTO;
-import com.example.demo.entity.CodingEntity;
-import com.example.demo.entity.CodingFileEntity;
-import com.example.demo.entity.CompetitionEntity;
-import com.example.demo.entity.CompetitionFileEntity;
+import com.example.demo.dto.QuestDTO;
+import com.example.demo.entity.*;
 import com.example.demo.repository.CodingFileRepository;
 import com.example.demo.repository.CodingRepository;
 import com.example.demo.repository.CompetitionFileRepository;
@@ -17,8 +15,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,14 +76,35 @@ public class CodingService {
         }
     }
 
+    @Transactional
+    public CodingDTO findByID(Long id, String userId) {
+        CodingEntity coding = codingRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        if (!coding.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "퀘스트에 대한 접근 권한이 없습니다.");
+        }
+        CodingDTO codingDTO = CodingDTO.toCodingDTO(coding);
+        return codingDTO;
+    }
+
     public CodingDTO update(CodingDTO codingDTO) {
         CodingEntity codingEntity = CodingEntity.toUpdatedEntity(codingDTO);
         codingRepository.save(codingEntity);
         return findByID(codingDTO.getId());
     }
 
-    public void delete(Long id) {
-        codingRepository.deleteById(id);
+    @Transactional
+    public boolean delete(Long id, String userId) {
+        Optional<CodingEntity> optionalCoding = codingRepository.findById(id);
+        if (optionalCoding.isPresent()) {
+            CodingEntity coding = optionalCoding.get();
+            if (coding.getUserId().equals(userId)) {
+                codingRepository.delete(coding);
+                return true;
+            }
+        }
+        return false;
     }
 
     public void deleteByAdmin(Long id) {

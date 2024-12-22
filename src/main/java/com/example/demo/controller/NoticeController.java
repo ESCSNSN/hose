@@ -12,21 +12,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/board")
+@RequestMapping("/api/board")
 public class NoticeController {
     private final NoticeService noticeService;
 
     @GetMapping("/notice")
-    public String paging(@RequestParam(value = "page", required = false) Integer page,
-                         @RequestParam(value = "size", defaultValue = "10") Integer size,
-                         Model model,
-                         @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
-                         @RequestParam(value = "contentKeyword", required = false) String contentKeyword) {
+    public ResponseEntity<Page<NoticeDTO>> paging(@RequestParam(value = "page", required = false) Integer page,
+                                                  @RequestParam(value = "size", defaultValue = "10") Integer size,
+                                                  Model model,
+                                                  @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
+                                                  @RequestParam(value = "contentKeyword", required = false) String contentKeyword) {
 
         if (page == null || page < 0) {
             page = 0;
@@ -44,76 +45,63 @@ public class NoticeController {
             noticeList = noticeService.searchByTitleOrContents(searchKeyword, contentKeyword, pageable); // 검색어 있을 때 검색 결과
         }
 
-        int blockLimit = 3;
-        int currentPage = noticeList.getNumber();
-        int startPage = (currentPage / blockLimit) * blockLimit + 1;
-        int endPage = Math.min(startPage + blockLimit - 1, noticeList.getTotalPages());
 
-        model.addAttribute("noticeList", noticeList);
-        model.addAttribute("startPage", startPage);
-        model.addAttribute("endPage", endPage);
-        model.addAttribute("searchKeyword", searchKeyword);
-        model.addAttribute("contentKeyword", contentKeyword);
 
-        return "notice";
+        return ResponseEntity.ok(noticeList);
     }
 
 
 
 
 
-    @GetMapping("/notice/save")
-    public String saveForm() {
-        return "Nsave";
-    }
-
-    @PostMapping("/notice/save")
-    public String save(@ModelAttribute NoticeDTO noticeDTO) throws IOException {
+    @PostMapping(value = "/notice/save", consumes = {"multipart/form-data"})
+    public ResponseEntity<NoticeDTO> save(@ModelAttribute NoticeDTO noticeDTO) throws IOException {
         noticeService.save(noticeDTO);
-        return "redirect:/board/notice";
+        return ResponseEntity.ok(noticeDTO); // 200 OK
     }
 
+    // GET /api/board/notice/{id}
     @GetMapping("/notice/{id}")
-    public String findById(@PathVariable Long id, Model model,
-                           @RequestParam(value = "page", defaultValue = "0") int page) {
-
+    public ResponseEntity<NoticeDTO> findById(@PathVariable Long id) {
         NoticeDTO noticeDTO = noticeService.findByID(id);
-        model.addAttribute("notice", noticeDTO);
-        model.addAttribute("page", page);
-        return "Ndetail";
+        return ResponseEntity.ok(noticeDTO);
     }
 
+    // GET /api/board/notice/update/{id} (업데이트 폼 요청)
     @GetMapping("/notice/update/{id}")
-    public String updateForm(@PathVariable Long id, Model model,
-                             @RequestParam(value = "page", defaultValue = "0") int page) {
-        NoticeDTO noticeDTO = noticeService.findByID(id);
-        model.addAttribute("noticeUpdate", noticeDTO);
-        model.addAttribute("page", page);
-        return "Nupdate";
+    public ResponseEntity<NoticeDTO> updateForm(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        NoticeDTO noticeDTO = noticeService.findByID(id, userId);
+        return ResponseEntity.ok(noticeDTO);
     }
 
+    // POST /api/board/coding/update
     @PostMapping("/notice/update")
-    public String update(@ModelAttribute NoticeDTO noticeDTO, Model model) {
-        NoticeDTO notice = noticeService.update(noticeDTO);
-        model.addAttribute("notice", notice);
-        return "Ndetail";
+    public NoticeDTO update(@RequestBody NoticeDTO noticeDTO) {
+        return noticeService.update(noticeDTO); // 업데이트된 CodingDTO 반환
     }
 
-    @GetMapping("/notice/delete/{id}")
-    public String delete(@PathVariable Long id) {
-        noticeService.delete(id);
-        return "redirect:/board/notice";
+    // DELETE /api/board/notice/delete/{id}
+    @DeleteMapping("/notice/delete/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        boolean isDeleted = noticeService.delete(id, userId);
+        if (isDeleted) {
+            return ResponseEntity.noContent().build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "사용자 권한이 없습니다.");
+        }
     }
 
-
+    // POST /api/board/notice/{id}/pin-toggle
     @PostMapping("/notice/{id}/pin-toggle")
     public ResponseEntity<Boolean> togglePin(@PathVariable Long id) {
         try {
-            System.out.println("Toggling pin status for notice ID: " + id); // 로그 추가
-            boolean isPinned = noticeService.togglePin(id); // 변경 후 핀 상태 반환
-            return ResponseEntity.ok(isPinned); // 핀 상태를 클라이언트로 반환
+            boolean isPinned = noticeService.togglePin(id);
+            return ResponseEntity.ok(isPinned);
         } catch (Exception e) {
-            e.printStackTrace(); // 예외 내용 출력
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

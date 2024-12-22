@@ -4,6 +4,7 @@ import com.example.demo.entity.CodingEntity;
 import com.example.demo.entity.CodingFileEntity;
 import com.example.demo.entity.FreeEntity;
 import com.example.demo.entity.FreeFileEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,7 @@ public class FreeDTO {
     private int scrap;
     private int freeLike;
 
+    @JsonIgnore
     private List<MultipartFile> freeFile;
     private List<String> originalFileName;
     private List<String> storedFileName;

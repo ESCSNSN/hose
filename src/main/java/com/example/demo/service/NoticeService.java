@@ -11,8 +11,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
@@ -81,14 +83,35 @@ public class NoticeService {
         }
     }
 
+    @Transactional
+    public NoticeDTO findByID(Long id, String userId) {
+        NoticeEntity notice = noticeRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        if (!notice.getUserId().equals(userId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "퀘스트에 대한 접근 권한이 없습니다.");
+        }
+        NoticeDTO noticeDTO = NoticeDTO.toNoticeDTO(notice);
+        return noticeDTO;
+    }
+
     public NoticeDTO update(NoticeDTO noticeDTO) {
         NoticeEntity noticeEntity = NoticeEntity.toUpdatedEntity(noticeDTO);
         noticeRepository.save(noticeEntity);
         return findByID(noticeDTO.getId());
     }
 
-    public void delete(Long id) {
-        noticeRepository.deleteById(id);
+    @Transactional
+    public boolean delete(Long id, String userId) {
+        Optional<NoticeEntity> optionalQuest = noticeRepository.findById(id);
+        if (optionalQuest.isPresent()) {
+            NoticeEntity notice = optionalQuest.get();
+            if (notice.getUserId().equals(userId)) {
+                noticeRepository.delete(notice);
+                return true;
+            }
+        }
+        return false;
     }
 
     public Page<NoticeDTO> paging(Pageable pageable) {
@@ -103,7 +126,8 @@ public class NoticeService {
                 notice.getId(),
                 notice.getUserId(),
                 notice.getNoticeTitle(),
-                notice.getNoticeCreatedTime()
+                notice.getNoticeCreatedTime(),
+                notice.isPinned()
         ));
     }
 
@@ -127,8 +151,6 @@ public class NoticeService {
         noticeRepository.save(notice); // 변경 사항 저장
         return newPinStatus; // 새 핀 상태 반환
     }
-
-
 
 
 }

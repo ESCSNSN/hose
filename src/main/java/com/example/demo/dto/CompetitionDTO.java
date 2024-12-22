@@ -2,6 +2,7 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.CompetitionEntity;
 import com.example.demo.entity.CompetitionFileEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,7 @@ public class CompetitionDTO {
     private int competitionLike; // 좋아요 여부
 
     // 파일 첨부를 위한 부분
+    @JsonIgnore
     private List<MultipartFile> competitionFile;
     private List<String> originalFileName; // 오타 수정
     private List<String> storedFileName;

@@ -3,6 +3,7 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.QuestEntity;
 import com.example.demo.entity.QuestFileEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,6 +30,7 @@ public class QuestDTO {
     private int scrap;
     private int questLike;
 
+    @JsonIgnore
     private List<MultipartFile> questFile;
     private List<String> originalFileName;
     private List<String> storedFileName;

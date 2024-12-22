@@ -8,8 +8,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
@@ -56,11 +58,11 @@ public class QuestController {
         return new QuestDTO(); // 기본 구조의 CodingDTO 반환
     }
 
-    // POST /api/board/coding/save
-    @PostMapping("/quest/save")
-    public QuestDTO save(@RequestBody QuestDTO questDTO) throws IOException {
+    // POST /api/board/quest/save
+    @PostMapping(value = "/quest/save", consumes = {"multipart/form-data"})
+    public ResponseEntity<QuestDTO> save(@ModelAttribute QuestDTO questDTO) throws IOException {
         questService.save(questDTO);
-        return questDTO; // 저장된 CodingDTO 반환
+        return ResponseEntity.ok(questDTO); // 200 OK
     }
 
     // GET /api/board/coding/{id}
@@ -69,11 +71,15 @@ public class QuestController {
         return questService.findByID(id);
     }
 
-    // GET /api/board/coding/update/{id}
-    @GetMapping("/free/quest/{id}")
-    public QuestDTO updateForm(@PathVariable Long id) {
-        return questService.findByID(id);
+    // GET /api/board/quest/update/{id} (업데이트 폼 요청)
+    @GetMapping("/quest/update/{id}")
+    public ResponseEntity<QuestDTO> updateForm(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        QuestDTO questDTO = questService.findByID(id, userId);
+        return ResponseEntity.ok(questDTO);
     }
+
 
     // POST /api/board/coding/update
     @PostMapping("/quest/update")
@@ -81,24 +87,37 @@ public class QuestController {
         return questService.update(questDTO); // 업데이트된 CodingDTO 반환
     }
 
-    // DELETE /api/board/coding/delete/{id}
+    // DELETE /api/board/quest/delete/{id}
     @DeleteMapping("/quest/delete/{id}")
-    public void delete(@PathVariable Long id) {
-        questService.delete(id);
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        boolean isDeleted = questService.delete(id, userId);
+        if (isDeleted) {
+            return ResponseEntity.noContent().build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "사용자 권한이 없습니다.");
+        }
     }
 
-    // POST /api/board/coding/{id}/like
+    // POST /api/board/quest/{id}/like
     @PostMapping("/quest/{id}/like")
-    public void likeFree(@PathVariable Long id) {
+    public ResponseEntity<Void> likeQuest(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
         questService.increaseLike(id);
+        return ResponseEntity.ok().build(); // 200 OK
     }
 
-
-    // POST /api/board/coding/{id}/scrap
+    // POST /api/board/quest/{id}/scrap
     @PostMapping("/quest/{id}/scrap")
-    public void scrapQuest(@PathVariable Long id) {
+    public ResponseEntity<Void> scrapQuest(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
         questService.toggleScrap(id);
+        return ResponseEntity.ok().build(); // 200 OK
     }
+
 
     @GetMapping("/quest/top-liked")
     public ResponseEntity<List<QuestDTO>> getTopLikedFrees() {

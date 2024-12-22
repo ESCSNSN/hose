@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.CodingDTO;
 import com.example.demo.dto.CommentDTO;
+import com.example.demo.dto.FreeDTO;
 import com.example.demo.entity.CodingEntity;
 import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.repository.CodingRepository;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
@@ -69,10 +71,10 @@ public class CodingController {
     }
 
     // POST /api/board/coding/save
-    @PostMapping("/coding/save")
-    public CodingDTO save(@RequestBody CodingDTO codingDTO) throws IOException {
+    @PostMapping(value = "/coding/save", consumes = {"multipart/form-data"})
+    public ResponseEntity<CodingDTO> save(@ModelAttribute CodingDTO codingDTO) throws IOException {
         codingService.save(codingDTO);
-        return codingDTO; // 저장된 CodingDTO 반환
+        return ResponseEntity.ok(codingDTO); // 200 OK
     }
 
     // GET /api/board/coding/{id}
@@ -81,10 +83,13 @@ public class CodingController {
         return codingService.findByID(id);
     }
 
-    // GET /api/board/coding/update/{id}
+    // GET /api/board/notice/update/{id} (업데이트 폼 요청)
     @GetMapping("/coding/update/{id}")
-    public CodingDTO updateForm(@PathVariable Long id) {
-        return codingService.findByID(id);
+    public ResponseEntity<CodingDTO> updateForm(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        CodingDTO codingDTO = codingService.findByID(id, userId);
+        return ResponseEntity.ok(codingDTO);
     }
 
     // POST /api/board/coding/update
@@ -93,32 +98,36 @@ public class CodingController {
         return codingService.update(codingDTO); // 업데이트된 CodingDTO 반환
     }
 
-    // DELETE /api/board/coding/delete/{id}
+    // DELETE /api/board/quest/delete/{id}
     @DeleteMapping("/coding/delete/{id}")
-    public void delete(@PathVariable Long id) {
-
-        // 게시물 엔티티 조회
-
-        CodingEntity post = codingRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
-
-        // 게시물에 해당하는 댓글 삭제
-        commentService.deleteCommentsByTarget("Coding", id);
-        codingService.delete(id);
-
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        boolean isDeleted = codingService.delete(id, userId);
+        if (isDeleted) {
+            commentService.deleteCommentsByTarget("Coding", id);
+            return ResponseEntity.noContent().build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "사용자 권한이 없습니다.");
+        }
     }
 
-    // POST /api/board/coding/{id}/like
+    // POST /api/board/free/{id}/like
     @PostMapping("/coding/{id}/like")
-    public void likeCoding(@PathVariable Long id) {
-        codingService.increaseLike(id); // toggleLike에서 increaseLike로 변경
+    public ResponseEntity<Void> likeQuest(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
+        codingService.increaseLike(id);
+        return ResponseEntity.ok().build(); // 200 OK
     }
 
-
-    // POST /api/board/coding/{id}/scrap
+    // POST /api/board/free/{id}/scrap
     @PostMapping("/coding/{id}/scrap")
-    public void scrapCoding(@PathVariable Long id) {
+    public ResponseEntity<Void> scrapQuest(
+            @PathVariable Long id,
+            @RequestHeader("X-USER-ID") String userId) {
         codingService.toggleScrap(id);
+        return ResponseEntity.ok().build(); // 200 OK
     }
 
     @GetMapping("/coding/top-liked")
