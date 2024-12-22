@@ -2,8 +2,10 @@ package com.example.demo.service;
 
 
 import com.example.demo.dto.CompetitionDTO;
+import com.example.demo.dto.FreeDTO;
 import com.example.demo.entity.CompetitionEntity;
 import com.example.demo.entity.CompetitionFileEntity;
+import com.example.demo.entity.FreeEntity;
 import com.example.demo.repository.CompetitionFileRepository;
 import com.example.demo.repository.CompetitionRepository;
 import jakarta.transaction.Transactional;
@@ -131,9 +133,9 @@ public class CompetitionService {
         // NoticeEntity를 NoticeDTO로 변환
         return competitionEntities.map(competition -> new CompetitionDTO(
                 competition.getId(),
-                competition.getUserId(),
                 competition.getCompetitiontitle(),
                 competition.getCompetitionCreatedTime(),
+                competition.getCompetitionLike(),
                 competition.getScrap()
         ));
     }
@@ -163,5 +165,35 @@ public class CompetitionService {
                 .orElseThrow(() -> new IllegalArgumentException("Competition not found with id: " + id));
         competition.setScrap(competition.getScrap() == 1 ? 0 : 1);
         competitionRepository.save(competition);
+    }
+
+    @Transactional
+    public Page<CompetitionDTO> searchAndSortByLikes(String searchKeyword, String contentKeyword, String hashtagKeyword, Pageable pageable) {
+        Page<CompetitionEntity> competitionEntities = competitionRepository.findByTitleOrContentsContaining(
+                searchKeyword, contentKeyword, hashtagKeyword, pageable);
+
+        // Lazy-loaded 컬렉션 초기화 (필요 시)
+        competitionEntities.forEach(free -> free.getCompetitionFileEntityList().size());
+
+        return competitionEntities.map(CompetitionDTO::toCompetitionDTO);
+    }
+
+
+    @Transactional
+    public Page<CompetitionDTO> sortByLikes(Pageable pageable) {
+        int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
+        int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
+
+        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "competitionLike")); // 필드 이름 확인
+
+        Page<CompetitionEntity> competitionEntities = competitionRepository.findAll(pageRequest);
+
+        return competitionEntities.map(competition -> new CompetitionDTO(
+                competition.getId(),
+                competition.getCompetitiontitle(),
+                competition.getCompetitionCreatedTime(),
+                competition.getCompetitionLike(),
+                competition.getScrap()
+        ));
     }
 }

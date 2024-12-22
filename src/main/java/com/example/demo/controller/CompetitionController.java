@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.CompetitionDTO;
+import com.example.demo.dto.FreeDTO;
 import com.example.demo.entity.CodingEntity;
 import com.example.demo.entity.CompetitionEntity;
 import com.example.demo.exception.UnauthorizedDeletionException;
@@ -37,7 +38,6 @@ public class CompetitionController {
     @GetMapping("/competition")
     public Page<CompetitionDTO> paging(@RequestParam(value = "page", required = false) Integer page,
                                        @RequestParam(value = "size", defaultValue = "10") Integer size,
-                                       Model model,
                                        @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
                                        @RequestParam(value = "contentKeyword", required = false) String contentKeyword,
                                        @RequestParam(value = "hashtagKeyword", required = false) String hashtagKeyword) {
@@ -131,6 +131,9 @@ public class CompetitionController {
         return ResponseEntity.ok().build(); // 200 OK
     }
 
+
+
+
     // POST /api/board/competition/{id}/comments/add
     @PostMapping("/competition/{id}/comments/add")
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
@@ -173,6 +176,39 @@ public class CompetitionController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<CommentDTO> comments = commentService.getComments("Competition", id, pageable);
         return ResponseEntity.ok(comments);
+    }
+
+    @GetMapping("/competition/sort-by-likes")
+    public Page<CompetitionDTO> sortByLikes(
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size,
+            @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
+            @RequestParam(value = "contentKeyword", required = false) String contentKeyword,
+            @RequestParam(value = "hashtagKeyword", required = false) String hashtagKeyword
+
+    ) {
+
+        if (page == null || page < 0) {
+            page = 0;
+        }
+        if (size == null || size <= 0) {
+            size = 10;
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "competition_like"));
+        Page<CompetitionDTO> competitionList;
+
+        // 검색 파라미터가 없으면 단순히 좋아요 순 정렬
+        if ((searchKeyword == null || searchKeyword.isEmpty()) &&
+                (contentKeyword == null || contentKeyword.isEmpty()) &&
+                (hashtagKeyword == null || hashtagKeyword.isEmpty())
+        ) {
+            competitionList =  competitionService.sortByLikes(pageable);
+            return competitionList;
+        } else {
+            // 검색 파라미터가 있으면 검색과 함께 좋아요 순 정렬
+            return competitionService.searchAndSortByLikes(searchKeyword, contentKeyword, hashtagKeyword, pageable);
+        }
     }
 
 

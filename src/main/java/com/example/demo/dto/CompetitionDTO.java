@@ -37,10 +37,11 @@ public class CompetitionDTO {
     private List<String> storedFileName;
     private int fileAttached;
 
-    public CompetitionDTO(Long id, String userId, String competitionTitle, LocalDateTime competitionCreatedTime, Integer scrap) {
+    public CompetitionDTO(Long id, String competitionTitle, LocalDateTime competitionCreatedTime,Integer competitionLike, Integer scrap) {
         this.id = id;
         this.competitionTitle = competitionTitle;
         this.competitionCreatedTime = competitionCreatedTime;
+        this.competitionLike = competitionLike;
         this.scrap = scrap;
     }
 
