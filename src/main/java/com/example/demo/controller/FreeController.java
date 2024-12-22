@@ -3,6 +3,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.FreeDTO;
 import com.example.demo.service.FreeService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -76,7 +77,8 @@ public class FreeController {
     @GetMapping("/free/update/{id}")
     public ResponseEntity<FreeDTO> updateForm(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         FreeDTO freeDTO = freeService.findByID(id, userId);
         return ResponseEntity.ok(freeDTO);
     }
@@ -91,7 +93,8 @@ public class FreeController {
     @DeleteMapping("/free/delete/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         boolean isDeleted = freeService.delete(id, userId);
         if (isDeleted) {
             return ResponseEntity.noContent().build();
@@ -104,7 +107,7 @@ public class FreeController {
     @PostMapping("/free/{id}/like")
     public ResponseEntity<Void> likeQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
         freeService.increaseLike(id);
         return ResponseEntity.ok().build(); // 200 OK
     }
@@ -113,7 +116,7 @@ public class FreeController {
     @PostMapping("/free/{id}/scrap")
     public ResponseEntity<Void> scrapQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
         freeService.toggleScrap(id);
         return ResponseEntity.ok().build(); // 200 OK
     }

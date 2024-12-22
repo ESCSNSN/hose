@@ -83,6 +83,8 @@ public class AdminController {
         return ResponseEntity.ok(reports);
     }
 
+
+
     /**
      * 강의실 추가 (관리자 전용)
      * URL: POST /api/admin/rooms/add

@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.NoticeDTO;
 import com.example.demo.service.NoticeService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -71,7 +72,8 @@ public class NoticeController {
     @GetMapping("/notice/update/{id}")
     public ResponseEntity<NoticeDTO> updateForm(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         NoticeDTO noticeDTO = noticeService.findByID(id, userId);
         return ResponseEntity.ok(noticeDTO);
     }
@@ -86,7 +88,8 @@ public class NoticeController {
     @DeleteMapping("/notice/delete/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         boolean isDeleted = noticeService.delete(id, userId);
         if (isDeleted) {
             return ResponseEntity.noContent().build();

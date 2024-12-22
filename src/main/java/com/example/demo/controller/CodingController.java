@@ -87,7 +87,9 @@ public class CodingController {
     @GetMapping("/coding/update/{id}")
     public ResponseEntity<CodingDTO> updateForm(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+
+        String userId = (String) request.getAttribute("username");
         CodingDTO codingDTO = codingService.findByID(id, userId);
         return ResponseEntity.ok(codingDTO);
     }
@@ -102,7 +104,8 @@ public class CodingController {
     @DeleteMapping("/coding/delete/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         boolean isDeleted = codingService.delete(id, userId);
         if (isDeleted) {
             commentService.deleteCommentsByTarget("Coding", id);
@@ -116,7 +119,8 @@ public class CodingController {
     @PostMapping("/coding/{id}/like")
     public ResponseEntity<Void> likeQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         codingService.increaseLike(id);
         return ResponseEntity.ok().build(); // 200 OK
     }
@@ -125,7 +129,8 @@ public class CodingController {
     @PostMapping("/coding/{id}/scrap")
     public ResponseEntity<Void> scrapQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         codingService.toggleScrap(id);
         return ResponseEntity.ok().build(); // 200 OK
     }

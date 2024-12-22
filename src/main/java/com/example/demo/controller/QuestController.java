@@ -3,6 +3,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.QuestDTO;
 import com.example.demo.service.QuestService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -75,7 +76,8 @@ public class QuestController {
     @GetMapping("/quest/update/{id}")
     public ResponseEntity<QuestDTO> updateForm(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         QuestDTO questDTO = questService.findByID(id, userId);
         return ResponseEntity.ok(questDTO);
     }
@@ -91,7 +93,8 @@ public class QuestController {
     @DeleteMapping("/quest/delete/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         boolean isDeleted = questService.delete(id, userId);
         if (isDeleted) {
             return ResponseEntity.noContent().build();
@@ -113,7 +116,8 @@ public class QuestController {
     @PostMapping("/quest/{id}/scrap")
     public ResponseEntity<Void> scrapQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         questService.toggleScrap(id);
         return ResponseEntity.ok().build(); // 200 OK
     }

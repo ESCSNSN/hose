@@ -9,6 +9,7 @@ import com.example.demo.repository.CompetitionRepository;
 import com.example.demo.service.CommentService;
 import com.example.demo.service.CompetitionService;
 // 불필요한 임포트 제거
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -82,7 +83,8 @@ public class CompetitionController {
     @GetMapping("/free/competition/{id}")
     public ResponseEntity<CompetitionDTO> updateForm(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         CompetitionDTO competitionDTO = competitionService.findByID(id, userId);
         return ResponseEntity.ok(competitionDTO);
     }
@@ -97,11 +99,12 @@ public class CompetitionController {
     @DeleteMapping("/competition/delete/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         boolean isDeleted = competitionService.delete(id, userId);
         if (isDeleted) {
             // 게시물에 해당하는 댓글 삭제
-            commentService.deleteCommentsByTarget("Coding", id);
+            commentService.deleteCommentsByTarget("Competition", id);
             return ResponseEntity.noContent().build();
 
         } else {
@@ -133,7 +136,8 @@ public class CompetitionController {
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
                                                  @RequestParam(required = false) Long parentCommentId,
                                                  @RequestParam String content,
-                                                 @RequestParam String userId) {
+                                                 HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         CommentDTO commentDTO = new CommentDTO();
         commentDTO.setContent(content);
         commentDTO.setUserId(userId);
@@ -148,8 +152,9 @@ public class CompetitionController {
     @PostMapping("/competition/{id}/comments/{commentId}/delete")
     public ResponseEntity<String> deleteComment(@PathVariable Long id,
                                                 @PathVariable Long commentId,
-                                                @RequestParam String userId) {
+                                                HttpServletRequest request) {
         try {
+            String userId = (String) request.getAttribute("username");
             commentService.deleteComment(commentId, userId);
             return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
         } catch (UnauthorizedDeletionException e) {
