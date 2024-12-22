@@ -29,6 +29,10 @@ public class FreeService {
 
 
 
+    public void deleteByAdmin(Long id) {
+        freeRepository.deleteById(id);
+    }
+
     public void save(FreeDTO freeDTO) throws IOException {
         // codingFile이 null이거나 비어 있는지 확인
         if (freeDTO.getFreeFile() == null || freeDTO.getFreeFile().isEmpty()) {

@@ -31,6 +31,8 @@ public class AdminController {
     private final CodingService codingService;
     private final CommentService commentService;
     private final CompetitionService competitionService;
+    private final FreeService freeService;
+    private final QuestService questService;
 
     /**
      * 모든 댓글 신고 목록 조회
@@ -227,6 +229,66 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("댓글을 찾을 수 없습니다.");
         }
     }
+
+    /**
+     * 관리자용 자유게시판 게시물 삭제
+     * 예: DELETE /api/admin/free/{id}
+     */
+    @DeleteMapping("/free/{id}")
+    public ResponseEntity<String> deleteFreePostByAdmin(@PathVariable Long id) {
+        try {
+            freeService.deleteByAdmin(id);
+            return ResponseEntity.ok("자유게시판 게시물이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("게시물을 찾을 수 없습니다.");
+        }
+    }
+
+    /**
+     * 관리자용 자유게시판 게시물 특정 댓글 삭제
+     * 예: DELETE /api/admin/free/{id}/comments/{commentId}
+     */
+    @DeleteMapping("/free/{id}/comments/{commentId}")
+    public ResponseEntity<String> deleteFreeCommentByAdmin(@PathVariable Long id,
+                                                                  @PathVariable Long commentId) {
+        try {
+            commentService.deleteCommentByAdmin(commentId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("댓글을 찾을 수 없습니다.");
+        }
+    }
+
+    /**
+     * 관리자용 질문게시판 게시물 삭제
+     * 예: DELETE /api/admin/quest/{id}
+     */
+    @DeleteMapping("/quest/{id}")
+    public ResponseEntity<String> deleteQuestPostByAdmin(@PathVariable Long id) {
+        try {
+            questService.deleteByAdmin(id);
+            return ResponseEntity.ok("질문게시판 게시물이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("게시물을 찾을 수 없습니다.");
+        }
+    }
+
+    /**
+     * 관리자용 질문게시판 게시물 특정 댓글 삭제
+     * 예: DELETE /api/admin/quest/{id}/comments/{commentId}
+     */
+    @DeleteMapping("/quest/{id}/comments/{commentId}")
+    public ResponseEntity<String> deleteQuestCommentByAdmin(@PathVariable Long id,
+                                                                  @PathVariable Long commentId) {
+        try {
+            commentService.deleteCommentByAdmin(commentId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("댓글을 찾을 수 없습니다.");
+        }
+    }
+
+
 
     /**
      * 특정 댓글에 대한 모든 신고 반려 (삭제)

@@ -28,6 +28,10 @@ public class QuestService {
     private final QuestRepository questRepository;
     private final QuestFileRepository questFileRepository;
 
+    public void deleteByAdmin(Long id) {
+        questRepository.deleteById(id);
+    }
+
 
 
     public void save(QuestDTO questDTO) throws IOException {

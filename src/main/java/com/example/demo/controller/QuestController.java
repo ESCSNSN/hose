@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
 
+import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.QuestDTO;
+import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.service.QuestService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import com.example.demo.service.CommentService;
+
 
 import java.io.IOException;
 import java.util.List;
@@ -23,8 +27,9 @@ import java.util.List;
 public class QuestController {
 
     private final QuestService questService;
+    private final CommentService commentService;
 
-    // GET /api/board/coding
+    // GET /api/board/quest
     @GetMapping("/quest")
     public Page<QuestDTO> paging(@RequestParam(value = "page", required = false) Integer page,
                                  @RequestParam(value = "size", defaultValue = "10") Integer size,
@@ -53,10 +58,10 @@ public class QuestController {
         return questList;
     }
 
-    // GET /api/board/coding/save
+    // GET /api/board/quest/save
     @GetMapping("/quest/save")
     public QuestDTO saveForm() {
-        return new QuestDTO(); // 기본 구조의 CodingDTO 반환
+        return new QuestDTO(); // 기본 구조의 questDTO 반환
     }
 
     // POST /api/board/quest/save
@@ -66,7 +71,7 @@ public class QuestController {
         return ResponseEntity.ok(questDTO); // 200 OK
     }
 
-    // GET /api/board/coding/{id}
+    // GET /api/board/quest/{id}
     @GetMapping("/quest/{id}")
     public QuestDTO findById(@PathVariable Long id) {
         return questService.findByID(id);
@@ -83,10 +88,10 @@ public class QuestController {
     }
 
 
-    // POST /api/board/coding/update
+    // POST /api/board/quest/update
     @PostMapping("/quest/update")
     public QuestDTO update(@RequestBody QuestDTO questDTO) {
-        return questService.update(questDTO); // 업데이트된 CodingDTO 반환
+        return questService.update(questDTO); // 업데이트된 questDTO 반환
     }
 
     // DELETE /api/board/quest/delete/{id}
@@ -164,6 +169,50 @@ public class QuestController {
             // 검색 파라미터가 있으면 검색과 함께 좋아요 순 정렬
             return questService.searchAndSortByLikes(searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
+    }
+
+    // POST /api/board/quest/{id}/comments/add
+    @PostMapping("/quest/{id}/comments/add")
+    public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
+                                                 @RequestParam(required = false) Long parentCommentId,
+                                                 @RequestParam String content,
+                                                 HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        CommentDTO commentDTO = new CommentDTO();
+        commentDTO.setContent(content);
+        commentDTO.setUserId(userId);
+        commentDTO.setTargetType("quest");
+        commentDTO.setTargetId(id);
+        commentDTO.setParentCommentId(parentCommentId);
+        commentService.addComment(commentDTO);
+        return ResponseEntity.ok(commentDTO);
+    }
+
+    // POST /api/board/quest/{id}/comments/{commentId}/delete
+    @PostMapping("/quest/{id}/comments/{commentId}/delete")
+    public ResponseEntity<String> deleteComment(@PathVariable Long id,
+                                                @PathVariable Long commentId,
+                                                HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        try {
+            commentService.deleteComment(commentId, userId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (UnauthorizedDeletionException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+
+    // GET /api/board/quest/{id}/comments
+    @GetMapping("/quest/{id}/comments")
+    public ResponseEntity<Page<CommentDTO>> getComments(@PathVariable Long id,
+                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                        @RequestParam(value = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<CommentDTO> comments = commentService.getComments("quest", id, pageable);
+        return ResponseEntity.ok(comments);
     }
 
 }

@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
 
+import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.FreeDTO;
+import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.service.FreeService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
+import com.example.demo.service.CommentService;
 import java.io.IOException;
 import java.util.List;
 
@@ -23,6 +25,7 @@ import java.util.List;
 public class FreeController {
 
     private final FreeService freeService;
+    private final CommentService commentService;
 
     // GET /api/board/coding
     @GetMapping("/free")
@@ -162,6 +165,50 @@ public class FreeController {
             // 검색 파라미터가 있으면 검색과 함께 좋아요 순 정렬
             return freeService.searchAndSortByLikes(searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
+    }
+
+    // POST /api/board/free/{id}/comments/add
+    @PostMapping("/free/{id}/comments/add")
+    public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
+                                                 @RequestParam(required = false) Long parentCommentId,
+                                                 @RequestParam String content,
+                                                 HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        CommentDTO commentDTO = new CommentDTO();
+        commentDTO.setContent(content);
+        commentDTO.setUserId(userId);
+        commentDTO.setTargetType("free");
+        commentDTO.setTargetId(id);
+        commentDTO.setParentCommentId(parentCommentId);
+        commentService.addComment(commentDTO);
+        return ResponseEntity.ok(commentDTO);
+    }
+
+    // POST /api/board/free/{id}/comments/{commentId}/delete
+    @PostMapping("/free/{id}/comments/{commentId}/delete")
+    public ResponseEntity<String> deleteComment(@PathVariable Long id,
+                                                @PathVariable Long commentId,
+                                                HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        try {
+            commentService.deleteComment(commentId, userId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (UnauthorizedDeletionException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+
+    // GET /api/board/free/{id}/comments
+    @GetMapping("/free/{id}/comments")
+    public ResponseEntity<Page<CommentDTO>> getComments(@PathVariable Long id,
+                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                        @RequestParam(value = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<CommentDTO> comments = commentService.getComments("free", id, pageable);
+        return ResponseEntity.ok(comments);
     }
 
 }
