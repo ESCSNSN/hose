@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.FreeDTO;
+import com.example.demo.dto.MainFreeDTO;
 import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
@@ -200,5 +201,13 @@ public class FreeService {
         ));
     }
 
+    @Transactional
+    public List<MainFreeDTO> getTop3FreePosts() {
+        PageRequest pageable = PageRequest.of(0, 3);
+        List<FreeEntity> freePosts = freeRepository.findTop3FreePostsWithFiles(pageable);
+        return freePosts.stream()
+                .map(MainFreeDTO::toMainFreeDTO)
+                .collect(Collectors.toList());
+    }
 
 }

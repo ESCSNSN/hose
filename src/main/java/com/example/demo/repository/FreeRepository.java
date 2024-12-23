@@ -29,4 +29,6 @@ public interface FreeRepository extends JpaRepository<FreeEntity, Long> {
 
     List<FreeEntity> findByFreeLikeGreaterThanEqualOrderByFreeCreatedTimeDesc(int freeLike, Pageable pageable);
 
+    @Query("SELECT f FROM FreeEntity f LEFT JOIN FETCH f.freeFileEntityList ORDER BY f.freeCreatedTime DESC")
+    List<FreeEntity> findTop3FreePostsWithFiles(Pageable pageable);
 }

@@ -2,6 +2,7 @@ package com.example.demo.repository;
 
 import com.example.demo.entity.CodingEntity;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,4 +30,6 @@ public interface CodingRepository extends JpaRepository<CodingEntity, Long> {
 
     List<CodingEntity> findBycodingLikeGreaterThanEqualOrderByCodingCreatedTimeDesc(int codingLike, Pageable pageable);
 
+    @Query("SELECT c FROM CodingEntity c LEFT JOIN FETCH c.codingFileEntityList ORDER BY c.codingCreatedTime DESC")
+    List<CodingEntity> findTop2CodingsWithFiles(PageRequest pageable);
 }

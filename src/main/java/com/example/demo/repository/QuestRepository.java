@@ -30,4 +30,6 @@ public interface QuestRepository extends JpaRepository<QuestEntity, Long> {
 
     List<QuestEntity> findByQuestLikeGreaterThanEqualOrderByQuestCreatedTimeDesc(int freeLike, Pageable pageable);
 
+    @Query("SELECT q FROM QuestEntity q LEFT JOIN FETCH q.questFileEntityList ORDER BY q.questCreatedTime DESC")
+    List<QuestEntity> findTop3QuestsWithFiles(Pageable pageable);
 }

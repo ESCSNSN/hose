@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.FreeDTO;
+import com.example.demo.dto.MainQuestDTO;
 import com.example.demo.dto.NoticeDTO;
 import com.example.demo.dto.QuestDTO;
 import com.example.demo.entity.*;
@@ -198,6 +199,15 @@ public class QuestService {
                 quest.getQuestLike(),
                 quest.getScrap()
         ));
+    }
+
+    @Transactional
+    public List<MainQuestDTO> getTop3Quests() {
+        PageRequest pageable = PageRequest.of(0, 3);
+        List<QuestEntity> quests = questRepository.findTop3QuestsWithFiles(pageable);
+        return quests.stream()
+                .map(MainQuestDTO::toMainQuestDTO)
+                .collect(Collectors.toList());
     }
 
 

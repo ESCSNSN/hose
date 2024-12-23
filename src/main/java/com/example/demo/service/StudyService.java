@@ -17,8 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -194,6 +193,25 @@ public class StudyService {
                         study.getScrap()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Map<String, List<MainStudyDTO>> getTop3StudiesByCategories() {
+        Map<String, List<MainStudyDTO>> topStudiesMap = new HashMap<>();
+        String[] categories = {"bootcamp", "industry", "study"};
+
+        for (String category : categories) {
+            List<StudyEntity> studies = studyRepository.findTopStudiesByStudyId(category, PageRequest.of(0, 1));
+            List<MainStudyDTO> studyDTOs = new ArrayList<>();
+
+            for (StudyEntity studyEntity : studies) {
+                studyDTOs.add(MainStudyDTO.toMainStudyDTO(studyEntity));
+            }
+
+            topStudiesMap.put(category, studyDTOs);
+        }
+
+        return topStudiesMap;
     }
 
 

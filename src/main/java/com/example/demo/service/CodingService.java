@@ -3,6 +3,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.CodingDTO;
 import com.example.demo.dto.CompetitionDTO;
+import com.example.demo.dto.MainCodingDTO;
 import com.example.demo.dto.QuestDTO;
 import com.example.demo.entity.*;
 import com.example.demo.repository.CodingFileRepository;
@@ -195,6 +196,16 @@ public class CodingService {
         codingEntities.forEach(coding -> coding.getCodingFileEntityList().size());
 
         return codingEntities.map(CodingDTO::toCodingDTO);
+    }
+
+
+    @Transactional
+    public List<MainCodingDTO> getTop2Codings() {
+        PageRequest pageable = PageRequest.of(0, 2);
+        List<CodingEntity> codings = codingRepository.findTop2CodingsWithFiles(pageable);
+        return codings.stream()
+                .map(MainCodingDTO::toMainCodingDTO)
+                .collect(Collectors.toList());
     }
 
 }

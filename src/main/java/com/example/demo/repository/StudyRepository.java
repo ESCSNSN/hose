@@ -3,6 +3,7 @@ package com.example.demo.repository;
 import com.example.demo.entity.QuestEntity;
 import com.example.demo.entity.StudyEntity;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -44,4 +45,9 @@ public interface StudyRepository extends JpaRepository<StudyEntity, Long> {
 
 
     List<StudyEntity> findByStudyLikeGreaterThanEqualOrderByStudyCreatedTimeDesc(int studyLike, Pageable pageable);
+
+    @Query("SELECT DISTINCT s FROM StudyEntity s LEFT JOIN FETCH s.studyFileEntityList WHERE s.studyId = :studyID ORDER BY s.studyCreatedTime DESC, s.id DESC")
+    List<StudyEntity> findTopStudiesByStudyId(String studyID, Pageable pageable);
+
+
 }

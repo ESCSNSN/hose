@@ -3,6 +3,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.CompetitionDTO;
 import com.example.demo.dto.FreeDTO;
+import com.example.demo.dto.MainCompetitionDTO;
 import com.example.demo.entity.CompetitionEntity;
 import com.example.demo.entity.CompetitionFileEntity;
 import com.example.demo.entity.FreeEntity;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -195,5 +197,14 @@ public class CompetitionService {
                 competition.getCompetitionLike(),
                 competition.getScrap()
         ));
+    }
+
+    @Transactional
+    public List<MainCompetitionDTO> getTop3Competitions() {
+        PageRequest pageable = PageRequest.of(0, 3);
+        List<CompetitionEntity> competitions = competitionRepository.findTop3CompetitionsWithFiles(pageable);
+        return competitions.stream()
+                .map(MainCompetitionDTO::toMainCompetitionDTO)
+                .collect(Collectors.toList());
     }
 }
