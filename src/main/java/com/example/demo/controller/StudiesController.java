@@ -2,6 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.*;
 import com.example.demo.entity.ApplyEntity;
+import com.example.demo.exception.UnauthorizedDeletionException;
+import com.example.demo.service.CommentService;
 import com.example.demo.service.StudyService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -22,9 +24,11 @@ import java.util.List;
 public class StudiesController {
 
     private final StudyService studyService;
+    private final CommentService commentService;
 
-    public StudiesController(StudyService studyService) {
+    public StudiesController(StudyService studyService, CommentService commentService) {
         this.studyService = studyService;
+        this.commentService = commentService;
     }
 
 
@@ -204,7 +208,8 @@ public class StudiesController {
     @PostMapping("/studies/apply/{applyId}/accept")
     public ResponseEntity<String> acceptApplication(
             @PathVariable Long applyId,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         studyService.acceptApplication(userId, applyId);
         return new ResponseEntity<>("지원 신청이 성공적으로 수락되었습니다.", HttpStatus.OK);
     }
@@ -213,23 +218,72 @@ public class StudiesController {
     @GetMapping("studies/{studyId}/applicants")
     public ResponseEntity<ApplicantListResponseDTO> getApplicants(
             @PathVariable Long studyId,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         ApplicantListResponseDTO responseDTO = studyService.getApplicants(userId, studyId);
         return new ResponseEntity<>(responseDTO, HttpStatus.OK);
     }
+
+
 
     /**
      * 지원 신청을 거절하는 API
      *
      * @param applyId 지원 신청의 ID
-     * @param userId  요청 헤더에서 추출한 사용자 ID
+     *
      * @return 성공 메시지
      */
     @DeleteMapping("/studies/apply/{applyId}/reject")
     public ResponseEntity<String> rejectApplication(
             @PathVariable Long applyId,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         studyService.rejectApplication(userId, applyId);
         return new ResponseEntity<>("지원 신청이 성공적으로 거절되었습니다.", HttpStatus.OK);
+    }
+
+
+    // POST /api/board/studies/{id}/comments/add
+    @PostMapping("/studies/{id}/comments/add")
+    public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
+                                                 @RequestParam(required = false) Long parentCommentId,
+                                                 @RequestParam String content,
+                                                 HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        CommentDTO commentDTO = new CommentDTO();
+        commentDTO.setContent(content);
+        commentDTO.setUserId(userId);
+        commentDTO.setTargetType("studies");
+        commentDTO.setTargetId(id);
+        commentDTO.setParentCommentId(parentCommentId);
+        commentService.addComment(commentDTO);
+        return ResponseEntity.ok(commentDTO);
+    }
+
+    // POST /api/board/studies/{id}/comments/{commentId}/delete
+    @PostMapping("/studies/{id}/comments/{commentId}/delete")
+    public ResponseEntity<String> deleteComment(@PathVariable Long id,
+                                                @PathVariable Long commentId,
+                                                HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        try {
+            commentService.deleteComment(commentId, userId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (UnauthorizedDeletionException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+
+    // GET /api/board/studies/{id}/comments
+    @GetMapping("/studies/{id}/comments")
+    public ResponseEntity<Page<CommentDTO>> getComments(@PathVariable Long id,
+                                                        @RequestParam(value = "page", defaultValue = "0") int page,
+                                                        @RequestParam(value = "size", defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<CommentDTO> comments = commentService.getComments("studies", id, pageable);
+        return ResponseEntity.ok(comments);
     }
 }
