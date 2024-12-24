@@ -114,7 +114,8 @@ public class QuestController {
     @PostMapping("/quest/{id}/like")
     public ResponseEntity<Void> likeQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         questService.increaseLike(id);
         return ResponseEntity.ok().build(); // 200 OK
     }

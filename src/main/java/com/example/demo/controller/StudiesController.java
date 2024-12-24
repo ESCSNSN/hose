@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.*;
 import com.example.demo.entity.ApplyEntity;
 import com.example.demo.service.StudyService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -66,7 +67,9 @@ public class StudiesController {
 
     // POST /api/board/quest/save
     @PostMapping(value = "/studies/save", consumes = {"multipart/form-data"})
-    public ResponseEntity<StudyDTO> save(@ModelAttribute StudyDTO studyDTO) throws IOException {
+    public ResponseEntity<StudyDTO> save(@ModelAttribute StudyDTO studyDTO, HttpServletRequest request) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        studyDTO.setUserID(userId);
         studyService.save(studyDTO);
         return ResponseEntity.ok(studyDTO); // 200 OK
     }
@@ -81,7 +84,8 @@ public class StudiesController {
     @GetMapping("/studies/update/{id}")
     public ResponseEntity<StudyDTO> updateForm(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         StudyDTO studyDTO = studyService.findByID(id, userId);
         return ResponseEntity.ok(studyDTO);
     }
@@ -97,7 +101,8 @@ public class StudiesController {
     @DeleteMapping("/studies/delete/{id}")
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         boolean isDeleted = studyService.delete(id, userId);
         if (isDeleted) {
             return ResponseEntity.noContent().build();
@@ -110,7 +115,8 @@ public class StudiesController {
     @PostMapping("/studies/{id}/like")
     public ResponseEntity<Void> likeQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         studyService.increaseLike(id);
         return ResponseEntity.ok().build(); // 200 OK
     }
@@ -119,7 +125,8 @@ public class StudiesController {
     @PostMapping("/studies/{id}/scrap")
     public ResponseEntity<Void> scrapQuest(
             @PathVariable Long id,
-            @RequestHeader("X-USER-ID") String userId) {
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
         studyService.toggleScrap(id);
         return ResponseEntity.ok().build(); // 200 OK
     }

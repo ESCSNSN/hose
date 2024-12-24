@@ -28,6 +28,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/board/**") // 보호할 엔드포인트
                 .addPathPatterns("/api/coding/**") // 보호할 엔드포인트
                 .addPathPatterns("/api/competition/**") // 보호할 엔드포인트
+                .addPathPatterns("/api/lecture/**") // 보호할 엔드포인트
                 .excludePathPatterns("/api/auth/**","/api/notice/**"); // AUTH 엔드포인트 제외
 
 
