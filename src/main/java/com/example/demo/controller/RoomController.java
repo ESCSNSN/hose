@@ -23,4 +23,6 @@ public class RoomController {
     public List<Map<String, Object>> getAllRoomsWithLectureTimes() {
         return roomService.getAllRoomsWithLectureTimes();
     }
+
+
 }

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,6 +20,7 @@ public class HomeController {
     private final CompetitionService competitionService;
     private final QuestService questService;
     private final FreeService freeService;
+    private final RoomService roomService;
 
     @GetMapping("/main/quest")
     public ResponseEntity<List<MainQuestDTO>> getTop3Quests() {
@@ -42,6 +44,15 @@ public class HomeController {
     public ResponseEntity<List<MainCodingDTO>> getTop2Codings() {
         List<MainCodingDTO> top2Codings = codingService.getTop2Codings();
         return ResponseEntity.ok(top2Codings);
+    }
+
+    @GetMapping("/main/rooms")
+    public ResponseEntity<List<Map<String, Object>>> getTopRoomsPreview(){
+        List<Map<String, Object>> topRooms = roomService.getAllRoomsWithLectureTimes()
+                .stream()
+                .limit(3)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(topRooms);
     }
 
     /**
