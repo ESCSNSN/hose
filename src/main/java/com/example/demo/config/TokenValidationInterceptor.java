@@ -16,7 +16,7 @@ import java.util.Map;
 @Component
 public class TokenValidationInterceptor implements HandlerInterceptor {
 
-    @Value("${auth.service.url}") // AUTH 서비스 URL
+    @Value("https://3883-211-222-112-198.ngrok-free.app") // AUTH 서비스 URL
     private String authServiceUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
