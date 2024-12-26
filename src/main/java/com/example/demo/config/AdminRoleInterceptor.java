@@ -11,6 +11,9 @@ public class AdminRoleInterceptor implements HandlerInterceptor{
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception{
         String role = (String) request.getAttribute("role");
+        String username = (String) request.getAttribute("username");
+        System.out.println("Username from request: " + username);
+        System.out.println("Role from request: " + role);
         if(!"admin".equalsIgnoreCase(role)){
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.getWriter().write("Access Denied: Admin Role Required");

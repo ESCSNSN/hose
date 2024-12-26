@@ -24,5 +24,12 @@ public class RoomController {
         return roomService.getAllRoomsWithLectureTimes();
     }
 
+    // lectureTime 비어있으면 빼고 전송
+    @GetMapping("api/rooms/all2")
+    public List<Map<String, Object>> getAllRoomsWithLectureTimesbyLectureTime() {
+        return roomService.getAllRoomsWithLectureTimes().stream()
+                .filter(room -> !((List<Map<String, Object>>) room.get("lectureTimes")).isEmpty())
+                .collect(Collectors.toList());
+    }
 
 }

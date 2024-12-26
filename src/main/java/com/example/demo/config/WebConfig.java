@@ -34,7 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://463665571ca4.ngrok.app"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "https://18a5fe61dbb7.ngrok.app"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Refreshtoken"));
@@ -61,6 +61,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/coding/**") // 보호할 엔드포인트
                 .addPathPatterns("/api/competition/**") // 보호할 엔드포인트
                 .addPathPatterns("/api/lecture/**") // 보호할 엔드포인트
+                .addPathPatterns("/api/admin/**") // 보호할 엔드포인트
                 .excludePathPatterns("/api/auth/**","/api/notice/**", "api/board/**", "api/board/main/**"); // AUTH 엔드포인트 제외
 
 

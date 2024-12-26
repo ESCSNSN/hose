@@ -16,7 +16,7 @@ import java.util.Map;
 @Component
 public class TokenValidationInterceptor implements HandlerInterceptor {
 
-    @Value("https://3883-211-222-112-198.ngrok-free.app") // AUTH 서비스 URL
+    @Value("https://18a5fe61dbb7.ngrok.app") // AUTH 서비스 URL
     private String authServiceUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
@@ -61,11 +61,14 @@ public class TokenValidationInterceptor implements HandlerInterceptor {
             // 검증된 사용자 정보 저장
             request.setAttribute("username", authResponse.getBody().get("username"));
             request.setAttribute("role", authResponse.getBody().get("role"));
+            System.out.println("AUTH Response Body: " + authResponse.getBody());
+
             return true;
         } else {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write("Invalid or expired token");
             return false;
         }
+
     }
 }
