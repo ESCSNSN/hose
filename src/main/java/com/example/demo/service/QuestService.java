@@ -210,5 +210,15 @@ public class QuestService {
                 .collect(Collectors.toList());
     }
 
+    // 기존 코드에 추가
+    @Transactional
+    public List<QuestDTO> findAllByUserId(String userId) {
+        List<QuestEntity> questEntities = questRepository.findByUserId(userId);
+        return questEntities.stream()
+                .map(QuestDTO::toQuestDTO)
+                .collect(Collectors.toList());
+    }
+
+
 
 }

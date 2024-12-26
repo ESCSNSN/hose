@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -151,6 +152,16 @@ public class NoticeService {
         noticeRepository.save(notice); // 변경 사항 저장
         return newPinStatus; // 새 핀 상태 반환
     }
+
+    // 기존 코드에 추가
+    @Transactional
+    public List<NoticeDTO> findAllByUserId(String userId) {
+        List<NoticeEntity> noticeEntities = noticeRepository.findByUserId(userId);
+        return noticeEntities.stream()
+                .map(NoticeDTO::toNoticeDTO)
+                .collect(Collectors.toList());
+    }
+
 
 
 }

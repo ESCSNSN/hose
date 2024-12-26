@@ -29,6 +29,7 @@ public interface NoticeRepository extends JpaRepository<NoticeEntity, Long> {
                     @Param("content") String content,
                     Pageable pageable
             );
+    List<NoticeEntity> findByUserId(String userId);
 
 }
 

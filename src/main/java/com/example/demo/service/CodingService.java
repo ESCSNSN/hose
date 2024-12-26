@@ -208,4 +208,14 @@ public class CodingService {
                 .collect(Collectors.toList());
     }
 
+    // 기존 코드에 추가
+    @Transactional
+    public List<CodingDTO> findAllByUserId(String userId) {
+        List<CodingEntity> codingEntities = codingRepository.findByUserId(userId);
+        return codingEntities.stream()
+                .map(CodingDTO::toCodingDTO)
+                .collect(Collectors.toList());
+    }
+
+
 }

@@ -210,4 +210,14 @@ public class FreeService {
                 .collect(Collectors.toList());
     }
 
+    // 기존 코드에 추가
+    @Transactional
+    public List<FreeDTO> findAllByUserId(String userId) {
+        List<FreeEntity> freeEntities = freeRepository.findByUserId(userId);
+        return freeEntities.stream()
+                .map(FreeDTO::toFreeDTO)
+                .collect(Collectors.toList());
+    }
+
+
 }

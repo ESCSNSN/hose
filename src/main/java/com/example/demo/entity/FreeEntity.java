@@ -40,6 +40,9 @@ public class FreeEntity extends FreeBaseEntity {
     @Column(name = "free_hashtag")
     private String freehashtag;
 
+    @Column(name = "title")
+    private String title;
+
     @Column
     private int fileAttached; // 1 or 0
 

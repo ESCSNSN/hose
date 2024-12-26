@@ -48,6 +48,7 @@ public interface StudyRepository extends JpaRepository<StudyEntity, Long> {
 
     @Query("SELECT DISTINCT s FROM StudyEntity s LEFT JOIN FETCH s.studyFileEntityList WHERE s.studyId = :studyID ORDER BY s.studyCreatedTime DESC, s.id DESC")
     List<StudyEntity> findTopStudiesByStudyId(String studyID, Pageable pageable);
+    List<StudyEntity> findByUserId(String userId);
 
 
 }

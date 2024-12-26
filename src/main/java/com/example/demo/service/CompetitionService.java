@@ -207,4 +207,14 @@ public class CompetitionService {
                 .map(MainCompetitionDTO::toMainCompetitionDTO)
                 .collect(Collectors.toList());
     }
+
+    // 기존 코드에 추가
+    @Transactional
+    public List<CompetitionDTO> findAllByUserId(String userId) {
+        List<CompetitionEntity> competitionEntities = competitionRepository.findByUserId(userId);
+        return competitionEntities.stream()
+                .map(CompetitionDTO::toCompetitionDTO)
+                .collect(Collectors.toList());
+    }
+
 }

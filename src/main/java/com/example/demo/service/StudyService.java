@@ -327,4 +327,14 @@ public class StudyService {
         applyRepository.delete(applyEntity);
     }
 
+    // 기존 코드에 추가
+    @Transactional
+    public List<StudyDTO> findAllByUserId(String userId) {
+        List<StudyEntity> studyEntities = studyRepository.findByUserId(userId);
+        return studyEntities.stream()
+                .map(StudyDTO::toStudyDTO)
+                .collect(Collectors.toList());
+    }
+
+
 }

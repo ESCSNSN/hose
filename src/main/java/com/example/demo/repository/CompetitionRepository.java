@@ -28,4 +28,5 @@ public interface CompetitionRepository extends JpaRepository<CompetitionEntity, 
 
     @Query("SELECT c FROM CompetitionEntity c LEFT JOIN FETCH c.competitionFileEntityList ORDER BY c.competitionCreatedTime DESC")
     List<CompetitionEntity> findTop3CompetitionsWithFiles(PageRequest pageable);
+    List<CompetitionEntity> findByUserId(String userId);
 }

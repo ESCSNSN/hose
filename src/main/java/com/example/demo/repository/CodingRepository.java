@@ -32,4 +32,5 @@ public interface CodingRepository extends JpaRepository<CodingEntity, Long> {
 
     @Query("SELECT c FROM CodingEntity c LEFT JOIN FETCH c.codingFileEntityList ORDER BY c.codingCreatedTime DESC")
     List<CodingEntity> findTop2CodingsWithFiles(PageRequest pageable);
+    List<CodingEntity> findByUserId(String userId);
 }

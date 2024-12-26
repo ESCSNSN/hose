@@ -31,4 +31,6 @@ public interface FreeRepository extends JpaRepository<FreeEntity, Long> {
 
     @Query("SELECT f FROM FreeEntity f LEFT JOIN FETCH f.freeFileEntityList ORDER BY f.freeCreatedTime DESC")
     List<FreeEntity> findTop3FreePostsWithFiles(Pageable pageable);
+    List<FreeEntity> findByUserId(String userId);
+
 }
