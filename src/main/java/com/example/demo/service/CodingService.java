@@ -162,7 +162,7 @@ public class CodingService {
         int limit = 3;
         PageRequest pageRequest = PageRequest.of(0, limit);
 
-        List<CodingEntity> topLikedEntities = codingRepository.findBycodingLikeGreaterThanEqualOrderByCodingCreatedTimeDesc(likeThreshold, pageRequest);
+        List<CodingEntity> topLikedEntities = codingRepository.findByCodingLikeGreaterThanEqualOrderByCodingCreatedTimeDesc(likeThreshold, pageRequest);
 
         return topLikedEntities.stream()
                 .map(coding -> new CodingDTO(

@@ -164,7 +164,7 @@ public class CodingController {
             size = 10;
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "coding_like"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "codingLike"));
 
         // 검색 파라미터가 없으면 단순히 좋아요 순 정렬
         if ((searchKeyword == null || searchKeyword.isEmpty()) &&

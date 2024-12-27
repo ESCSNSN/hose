@@ -28,7 +28,7 @@ public interface CodingRepository extends JpaRepository<CodingEntity, Long> {
 
 
 
-    List<CodingEntity> findBycodingLikeGreaterThanEqualOrderByCodingCreatedTimeDesc(int codingLike, Pageable pageable);
+    List<CodingEntity> findByCodingLikeGreaterThanEqualOrderByCodingCreatedTimeDesc(int codingLike, Pageable pageable);
 
     @Query("SELECT c FROM CodingEntity c LEFT JOIN FETCH c.codingFileEntityList ORDER BY c.codingCreatedTime DESC")
     List<CodingEntity> findTop2CodingsWithFiles(PageRequest pageable);
