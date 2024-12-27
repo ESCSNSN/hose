@@ -1,13 +1,7 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.CodingDTO;
-import com.example.demo.dto.CompetitionDTO;
-import com.example.demo.dto.FreeDTO;
-import com.example.demo.dto.NoticeDTO;
-import com.example.demo.service.CodingService;
-import com.example.demo.service.CompetitionService;
-import com.example.demo.service.FreeService;
-import com.example.demo.service.NoticeService;
+import com.example.demo.dto.*;
+import com.example.demo.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +19,7 @@ public class MyPageController {
     private final CompetitionService competitionService;
     private final FreeService freeService;
     private final NoticeService noticeService;
+    private final CommentService commentService;
 
     @GetMapping("/my-posts")
     public Map<String, Object> getMyPosts(HttpServletRequest request) {
@@ -44,4 +39,11 @@ public class MyPageController {
 
         return response;
     }
+
+    @GetMapping("/my-comments")
+    public List<CommentDTO> getMyComments(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        return commentService.findAllByUserId(userId);
+    }
+
 }

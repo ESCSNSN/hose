@@ -11,6 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -116,5 +119,13 @@ public class CommentService {
     @Transactional
     public void deleteCommentsByTarget(String targetType, Long targetId) {
         commentRepository.deleteByTargetTypeAndTargetId(targetType, targetId);
+    }
+
+    // 사용자 아이디로 댓글 조회
+    public List<CommentDTO> findAllByUserId(String userId) {
+        List<CommentEntity> comments = commentRepository.findByUserId(userId);
+        return comments.stream()
+                .map(CommentDTO::new)
+                .collect(Collectors.toList());
     }
 }

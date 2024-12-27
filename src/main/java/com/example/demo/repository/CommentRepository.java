@@ -11,5 +11,6 @@ import java.util.List;
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
     Page<CommentEntity> findByTargetTypeAndTargetId(String targetType, Long targetId, Pageable pageable);
     void deleteByTargetTypeAndTargetId(String targetType, Long targetId);
-    List<StudyEntity> findByUserId(String userId);
+    List<CommentEntity> findByUserId(String userId);
+
 }
