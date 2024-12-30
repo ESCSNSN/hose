@@ -25,7 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/board")
 public class CompetitionController {
@@ -82,7 +82,7 @@ public class CompetitionController {
     public CompetitionDTO findById(@PathVariable Long id) {return competitionService.findByID(id);}
 
     // GET /api/board/competition/update/{id} (업데이트 폼 요청)
-    @GetMapping("/free/competition/{id}")
+    @GetMapping("/competition/update/{id}")
     public ResponseEntity<CompetitionDTO> updateForm(
             @PathVariable Long id,
             HttpServletRequest request) {

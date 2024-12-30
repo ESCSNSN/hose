@@ -13,7 +13,7 @@ import java.util.List;
 
 public interface QuestRepository extends JpaRepository<QuestEntity, Long> {
 
-    @Query(value = "SELECT * FROM free_table WHERE " +
+    @Query(value = "SELECT * FROM quest_table WHERE " +
             "(:title IS NULL OR :title = '' OR quest_title LIKE CONCAT('%', :title, '%') COLLATE utf8mb4_unicode_ci) " +
             "AND (:content IS NULL OR :content = '' OR quest_contents LIKE CONCAT('%', :content, '%') COLLATE utf8mb4_unicode_ci) " +
             "AND (:hashtag IS NULL OR :hashtag = '' OR quest_hashtag LIKE CONCAT('%', :hashtag, '%') COLLATE utf8mb4_unicode_ci)",
