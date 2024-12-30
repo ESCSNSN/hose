@@ -37,6 +37,10 @@ public class StudyEntity extends StudyBaseEntity {
     @Column(name = "study_contents", length = 500)
     private String studtycontents;
 
+    @Column(name = "start_time")
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime startTime;
+
     @Column(name = "deadline")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime deadline;
@@ -73,6 +77,7 @@ public class StudyEntity extends StudyBaseEntity {
         studyEntity.setStudytitle(studyDTO.getStudyTitle());
         studyEntity.setStudtycontents(studyDTO.getStudyContents());
         studyEntity.setStudyhashtag(studyDTO.getStudyHashtag());
+        studyEntity.setStartTime(studyDTO.getStartTime());
         studyEntity.setDeadline(studyDTO.getDeadline());
         studyEntity.setRecruit(studyDTO.getRecruit());
         studyEntity.setFileAttached(0);
@@ -87,6 +92,7 @@ public class StudyEntity extends StudyBaseEntity {
         studyEntity.setStudytitle(studyDTO.getStudyTitle());
         studyEntity.setStudtycontents(studyDTO.getStudyContents());
         studyEntity.setStudyhashtag(studyDTO.getStudyHashtag());
+        studyEntity.setStartTime(studyDTO.getStartTime());
         studyEntity.setDeadline(studyDTO.getDeadline());
         studyEntity.setRecruit(studyDTO.getRecruit());
         studyEntity.setFileAttached(studyDTO.getFileAttached());
@@ -100,6 +106,7 @@ public class StudyEntity extends StudyBaseEntity {
         studyEntity.setStudytitle(studyDTO.getStudyTitle());
         studyEntity.setStudtycontents(studyDTO.getStudyContents());
         studyEntity.setStudyhashtag(studyDTO.getStudyHashtag());
+        studyEntity.setStartTime(studyDTO.getStartTime());
         studyEntity.setDeadline(studyDTO.getDeadline());
         studyEntity.setRecruit(studyDTO.getRecruit());
         studyEntity.setFileAttached(1);

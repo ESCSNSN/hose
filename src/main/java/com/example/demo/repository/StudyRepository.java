@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface StudyRepository extends JpaRepository<StudyEntity, Long> {
@@ -41,7 +42,8 @@ public interface StudyRepository extends JpaRepository<StudyEntity, Long> {
             @Param("hashtag") String hashtag,
             Pageable pageable);
 
-
+    // 마감 임박순으로 마감일이 현재 시간 이후인 스터디 조회
+    Page<StudyEntity> findByDeadlineGreaterThanEqualOrderByDeadlineAsc(LocalDateTime deadline, Pageable pageable);
 
 
     List<StudyEntity> findByStudyLikeGreaterThanEqualOrderByStudyCreatedTimeDesc(int studyLike, Pageable pageable);

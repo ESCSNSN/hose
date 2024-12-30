@@ -17,6 +17,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -104,16 +107,27 @@ public class StudyService {
         // pageable을 사용해 페이지와 정렬을 설정
         Page<StudyEntity> studyEntities = studyRepository.findAll(PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "id")));
 
+        // 현재 날짜
+        LocalDate today = LocalDate.now();
 
-        return studyEntities.map(study -> new StudyDTO(
-                study.getId(),
-                study.getStudyId(),
-                study.getStudytitle(),
-                study.getDeadline(),
-                study.getRecruit(),
-                study.getCountMember(),
-                study.getScrap()
-        ));
+        // 엔티티를 DTO로 변환하면서 daysLeft 계산
+        Page<StudyDTO> studyDTOPage = studyEntities.map(study -> {
+            long daysLeft = ChronoUnit.DAYS.between(today, study.getDeadline().toLocalDate());
+
+            return new StudyDTO(
+                    study.getId(),
+                    study.getStudyId(),
+                    study.getStudytitle(),
+                    study.getStartTime(),
+                    study.getDeadline(),
+                    study.getRecruit(),
+                    study.getCountMember(),
+                    study.getScrap(),
+                    daysLeft
+            );
+        });
+
+        return studyDTOPage;
     }
 
 
@@ -138,25 +152,45 @@ public class StudyService {
         return studyEntities.map(StudyDTO::toStudyDTO);
     }
 
+
     @Transactional
     public Page<StudyDTO> sortBydeadline(Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
-        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.DESC, "dealine")); // 필드 이름 확인
+        // 현재 시간
+        LocalDateTime now = LocalDateTime.now();
 
-        Page<StudyEntity> studyEntities = studyRepository.findAll(pageRequest);
+        // pageable을 사용해 페이지와 정렬을 설정 (마감 임박순: deadline 오름차순)
+        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.ASC, "deadline")); // 필드 이름 수정: "dealine" → "deadline"
 
-        return studyEntities.map(study -> new StudyDTO(
-                study.getId(),
-                study.getStudyId(),
-                study.getStudytitle(),
-                study.getDeadline(),
-                study.getRecruit(),
-                study.getCountMember(),
-                study.getScrap()
-        ));
+        // 마감일이 현재 시간 이후인 스터디만 조회
+        Page<StudyEntity> studyEntities = studyRepository.findByDeadlineGreaterThanEqualOrderByDeadlineAsc(now, pageRequest);
+
+        // 엔티티를 DTO로 변환하면서 daysLeft 계산
+        return studyEntities.map(study -> {
+            long daysLeft = 0;
+            if (study.getDeadline() != null) {
+                LocalDate today = LocalDate.now();
+                LocalDate deadlineDate = study.getDeadline().toLocalDate();
+                daysLeft = ChronoUnit.DAYS.between(today, deadlineDate);
+                daysLeft = daysLeft >= 0 ? daysLeft : 0; // 음수일 경우 0으로 설정
+            }
+
+            return new StudyDTO(
+                    study.getId(),
+                    study.getStudyId(),
+                    study.getStudytitle(),
+                    study.getStartTime(),
+                    study.getDeadline(),
+                    study.getRecruit(),
+                    study.getCountMember(),
+                    study.getScrap(),
+                    daysLeft
+            );
+        });
     }
+
 
     @Transactional
     public void increaseLike(Long id) {
@@ -178,20 +212,29 @@ public class StudyService {
     public List<StudyDTO> getTopLikedFrees() {
         int likeThreshold = 10;
         int limit = 3;
-        PageRequest pageRequest = PageRequest.of(0, limit);
+        Pageable pageRequest = PageRequest.of(0, limit);
 
         List<StudyEntity> topLikedEntities = studyRepository.findByStudyLikeGreaterThanEqualOrderByStudyCreatedTimeDesc(likeThreshold, pageRequest);
+        LocalDate today = LocalDate.now();
 
         return topLikedEntities.stream()
-                .map(study -> new StudyDTO(
-                        study.getId(),
-                        study.getStudyId(),
-                        study.getStudytitle(),
-                        study.getDeadline(),
-                        study.getRecruit(),
-                        study.getCountMember(),
-                        study.getScrap()
-                ))
+                .map(study -> {
+                    // daysLeft 계산
+                    long daysLeft = ChronoUnit.DAYS.between(today, study.getDeadline().toLocalDate());
+
+                    // StudyDTO 생성자에 daysLeft 포함
+                    return new StudyDTO(
+                            study.getId(),
+                            study.getStudyId(),
+                            study.getStudytitle(),
+                            study.getStartTime(),
+                            study.getDeadline(),
+                            study.getRecruit(),
+                            study.getCountMember(),
+                            study.getScrap(),
+                            daysLeft
+                    );
+                })
                 .collect(Collectors.toList());
     }
 

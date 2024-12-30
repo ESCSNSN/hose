@@ -146,7 +146,7 @@ public class StudiesController {
     }
 
 
-    @GetMapping("/studies/sort-by-likes")
+    @GetMapping("/studies/sort-by-deadline")
     public Page<StudyDTO> sortByLikes(
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,

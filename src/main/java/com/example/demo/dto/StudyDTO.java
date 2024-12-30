@@ -8,7 +8,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +28,7 @@ public class StudyDTO {
     private String studyContents;
     private String studyHashtag;
 
+    private LocalDateTime startTime;
     private LocalDateTime deadline;
     private Integer recruit;
     private int countMember;
@@ -36,20 +39,25 @@ public class StudyDTO {
     private int scrap;
     private int studyLike;
 
+
+    private long daysLeft;
+
     @JsonIgnore
     private List<MultipartFile> studyFile;
     private List<String> originalFileName;
     private List<String> storedFileName;
     private int fileAttached;
 
-    public StudyDTO(Long id, String studyID, String studyTitle,LocalDateTime deadline,Integer recruit,Integer countMember,Integer scrap) {
+    public StudyDTO(Long id, String studyID, String studyTitle,LocalDateTime startTime,LocalDateTime deadline,Integer recruit,Integer countMember,Integer scrap,Long daysLeft) {
         this.id = id;
         this.studyID = studyID;
         this.studyTitle = studyTitle;
+        this.startTime = startTime;
         this.deadline = deadline;
         this.recruit = recruit;
         this.countMember = countMember;
         this.scrap = scrap;
+        this.daysLeft = daysLeft;
     }
 
     public static StudyDTO toStudyDTO(StudyEntity studyEntity) {
@@ -61,6 +69,7 @@ public class StudyDTO {
         studyDTO.setStudyTitle(studyEntity.getStudytitle());
         studyDTO.setStudyContents(studyEntity.getStudtycontents());
         studyDTO.setStudyHashtag(studyEntity.getStudyhashtag());
+        studyDTO.setStartTime(studyEntity.getStartTime());
         studyDTO.setDeadline(studyEntity.getDeadline());
         studyDTO.setRecruit(studyEntity.getRecruit());
         studyDTO.setCountMember(studyEntity.getCountMember());
@@ -68,6 +77,16 @@ public class StudyDTO {
         studyDTO.setStudyUpdatedTime(studyEntity.getStudyUpdatedTime());
         studyDTO.setScrap(studyEntity.getScrap());
         studyDTO.setStudyLike(studyEntity.getStudyLike());
+
+        // daysLeft 계산 및 설정
+        if (studyEntity.getDeadline() != null) {
+            LocalDate today = LocalDate.now();
+            LocalDate deadlineDate = studyEntity.getDeadline().toLocalDate();
+            long daysLeft = ChronoUnit.DAYS.between(today, deadlineDate);
+            studyDTO.setDaysLeft(daysLeft);
+        }
+
+
 
         if (studyEntity.getFileAttached() == 0) {
             studyDTO.setFileAttached(studyEntity.getFileAttached());
