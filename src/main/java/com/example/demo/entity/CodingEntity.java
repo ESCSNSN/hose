@@ -48,6 +48,9 @@ public class CodingEntity extends CodingBaseEntity {
     @OneToMany(mappedBy = "codingEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CodingFileEntity> codingFileEntityList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "codingEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<CodingLikeEntity> likes = new ArrayList<>();
+
     public static CodingEntity toSaveEntity(CodingDTO codingDTO) {
         CodingEntity codingEntity = new CodingEntity();
         codingEntity.setUserId(codingDTO.getUserID());

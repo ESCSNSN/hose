@@ -7,6 +7,7 @@ import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.service.QuestService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,9 @@ import com.example.demo.service.CommentService;
 
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,6 +30,7 @@ import java.util.List;
 public class QuestController {
 
     private final QuestService questService;
+
     private final CommentService commentService;
 
     // GET /api/board/quest
@@ -112,12 +116,31 @@ public class QuestController {
 
     // POST /api/board/quest/{id}/like
     @PostMapping("/quest/{id}/like")
-    public ResponseEntity<Void> likeQuest(
+    public ResponseEntity<String> toggleLikeQuest(
             @PathVariable Long id,
             HttpServletRequest request) {
         String userId = (String) request.getAttribute("username");
-        questService.increaseLike(id);
-        return ResponseEntity.ok().build(); // 200 OK
+
+        try {
+            questService.toggleLike(id, userId);
+            return ResponseEntity.ok("Like toggled successfully");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // 새로운 좋아요 상태 확인 엔드포인트
+    @GetMapping("/quest/{id}/like-status")
+    public ResponseEntity<Map<String, Object>> checkLikeStatus(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username"); // 또는 다른 방식으로 사용자 ID 가져오기
+
+        boolean isLiked = questService.hasUserLikedQuest(id, userId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("liked", isLiked);
+        return ResponseEntity.ok(response);
     }
 
     // POST /api/board/quest/{id}/scrap

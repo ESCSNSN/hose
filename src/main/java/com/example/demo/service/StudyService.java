@@ -29,6 +29,7 @@ public class StudyService {
     private final StudyRepository studyRepository;
     private final StudyFileRepository studyFileRepository;
     private final ApplyRepository applyRepository;
+    private final StudyLikeRepository studyLikeRepository;
 
 
     public void save(StudyDTO studyDTO) throws IOException {
@@ -193,11 +194,35 @@ public class StudyService {
 
 
     @Transactional
-    public void increaseLike(Long id) {
-        StudyEntity study = studyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        study.setStudyLike(study.getStudyLike() + 1);
-        studyRepository.save(study);
+    public void toggleLike(Long studyId, String userId) {
+        StudyEntity study = studyRepository.findById(studyId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + studyId));
+
+        if (studyLikeRepository.existsByUserIdAndStudyEntityId(userId, studyId)) {
+            // 좋아요가 이미 존재하면 삭제
+            StudyLikeEntity like = studyLikeRepository.findByUserIdAndStudyEntityId(userId, studyId)
+                    .orElseThrow(() -> new IllegalArgumentException("Like not found"));
+            studyLikeRepository.delete(like);
+
+            // 좋아요 수 감소
+            if (study.getStudyLike() > 0) {
+                study.setStudyLike(study.getStudyLike() - 1);
+                studyRepository.save(study);
+            }
+        } else {
+            // 좋아요가 없으면 추가
+            StudyLikeEntity newLike = StudyLikeEntity.toStudyLikeEntity(study, userId);
+            studyLikeRepository.save(newLike);
+
+            // 좋아요 수 증가
+            study.setStudyLike(study.getStudyLike() + 1);
+            studyRepository.save(study);
+        }
+    }
+
+    @Transactional
+    public boolean hasUserLikedStudy(Long studyId, String userId) {
+        return studyLikeRepository.existsByUserIdAndStudyEntityId(userId, studyId);
     }
 
 

@@ -47,6 +47,9 @@ public class GraduateEntity extends GraduateBaseEntity {
     @Column(name = "graudate_hashtag")
     private String graduatehashtag;
 
+    @OneToMany(mappedBy = "graduateEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<GraduateLikeEntity> likes = new ArrayList<>();
+
 
 
     public static GraduateEntity toSaveEntity(GraduateDTO graduateDTO) {

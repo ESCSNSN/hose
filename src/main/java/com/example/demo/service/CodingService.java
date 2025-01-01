@@ -6,10 +6,7 @@ import com.example.demo.dto.CompetitionDTO;
 import com.example.demo.dto.MainCodingDTO;
 import com.example.demo.dto.QuestDTO;
 import com.example.demo.entity.*;
-import com.example.demo.repository.CodingFileRepository;
-import com.example.demo.repository.CodingRepository;
-import com.example.demo.repository.CompetitionFileRepository;
-import com.example.demo.repository.CompetitionRepository;
+import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -33,6 +30,7 @@ import java.util.stream.Collectors;
 public class CodingService {
     private final CodingRepository codingRepository;
     private final CodingFileRepository codingFileRepository;
+    private final CodingLikeRepository codingLikeRepository;
 
 
 
@@ -141,11 +139,35 @@ public class CodingService {
     }
 
     @Transactional
-    public void increaseLike(Long id) {
-        CodingEntity coding = codingRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        coding.setCodingLike(coding.getCodingLike() + 1);
-        codingRepository.save(coding);
+    public void toggleLike(Long codingId, String userId) {
+        CodingEntity coding = codingRepository.findById(codingId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + codingId));
+
+        if (codingLikeRepository.existsByUserIdAndCodingEntityId(userId, codingId)) {
+            // 좋아요가 이미 존재하면 삭제
+            CodingLikeEntity like = codingLikeRepository.findByUserIdAndCodingEntityId(userId, codingId)
+                    .orElseThrow(() -> new IllegalArgumentException("Like not found"));
+            codingLikeRepository.delete(like);
+
+            // 좋아요 수 감소
+            if (coding.getCodingLike() > 0) {
+                coding.setCodingLike(coding.getCodingLike() - 1);
+                codingRepository.save(coding);
+            }
+        } else {
+            // 좋아요가 없으면 추가
+            CodingLikeEntity newLike = CodingLikeEntity.toCodingLikeEntity(coding, userId);
+            codingLikeRepository.save(newLike);
+
+            // 좋아요 수 증가
+            coding.setCodingLike(coding.getCodingLike() + 1);
+            codingRepository.save(coding);
+        }
+    }
+
+    @Transactional
+    public boolean hasUserLikedCoding(Long codingId, String userId) {
+        return codingLikeRepository.existsByUserIdAndCodingEntityId(userId, codingId);
     }
 
 

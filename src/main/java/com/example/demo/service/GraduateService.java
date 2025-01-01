@@ -3,9 +3,8 @@ package com.example.demo.service;
 import com.example.demo.dto.FreeDTO;
 import com.example.demo.dto.GraduateDTO;
 import com.example.demo.dto.MainGraduateDTO;
-import com.example.demo.entity.FreeEntity;
-import com.example.demo.entity.FreeFileEntity;
-import com.example.demo.entity.GraduateEntity;
+import com.example.demo.entity.*;
+import com.example.demo.repository.GraduateLikeRepository;
 import com.example.demo.repository.GraduateRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +29,7 @@ public class GraduateService {
 
 
     private final GraduateRepository graduateRepository;
+    private final GraduateLikeRepository graduateLikeRepository;
 
     public void save(GraduateDTO graduateDTO) throws IOException {
         System.out.println("GraduateDTO.getGraduateId(): " + graduateDTO.getGraduateId());
@@ -112,11 +112,35 @@ public class GraduateService {
     }
 
     @Transactional
-    public void increaseLike(Long id) {
-        GraduateEntity graduate = graduateRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        graduate.setGraduateLike(graduate.getGraduateLike() + 1);
-        graduateRepository.save(graduate);
+    public void toggleLike(Long graduateId, String userId) {
+        GraduateEntity graduate = graduateRepository.findById(graduateId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + graduateId));
+
+        if (graduateLikeRepository.existsByUserIdAndGraduateEntityId(userId, graduateId)) {
+            // 좋아요가 이미 존재하면 삭제
+            GraduateLikeEntity like = graduateLikeRepository.findByUserIdAndGraduateEntityId(userId, graduateId)
+                    .orElseThrow(() -> new IllegalArgumentException("Like not found"));
+            graduateLikeRepository.delete(like);
+
+            // 좋아요 수 감소
+            if (graduate.getGraduateLike() > 0) {
+                graduate.setGraduateLike(graduate.getGraduateLike() - 1);
+                graduateRepository.save(graduate);
+            }
+        } else {
+            // 좋아요가 없으면 추가
+            GraduateLikeEntity newLike = GraduateLikeEntity.toGraduateLikeEntity(graduate, userId);
+            graduateLikeRepository.save(newLike);
+
+            // 좋아요 수 증가
+            graduate.setGraduateLike(graduate.getGraduateLike() + 1);
+            graduateRepository.save(graduate);
+        }
+    }
+
+    @Transactional
+    public boolean hasUserLikedGraduate(Long freeId, String userId) {
+        return graduateLikeRepository.existsByUserIdAndGraduateEntityId(userId, freeId);
     }
 
 

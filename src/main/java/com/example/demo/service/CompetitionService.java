@@ -4,10 +4,9 @@ package com.example.demo.service;
 import com.example.demo.dto.CompetitionDTO;
 import com.example.demo.dto.FreeDTO;
 import com.example.demo.dto.MainCompetitionDTO;
-import com.example.demo.entity.CompetitionEntity;
-import com.example.demo.entity.CompetitionFileEntity;
-import com.example.demo.entity.FreeEntity;
+import com.example.demo.entity.*;
 import com.example.demo.repository.CompetitionFileRepository;
+import com.example.demo.repository.CompetitionLikeRepository;
 import com.example.demo.repository.CompetitionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +31,7 @@ import java.util.stream.Collectors;
 public class CompetitionService {
     private final CompetitionRepository competitionRepository;
     private final CompetitionFileRepository competitionFileRepository;
+    private final CompetitionLikeRepository competitionLikeRepository;
 
 
 
@@ -154,11 +154,35 @@ public class CompetitionService {
     }
 
     @Transactional
-    public void increaseLike(Long id) {
-        CompetitionEntity competition = competitionRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        competition.setCompetitionLike(competition.getCompetitionLike() + 1);
-        competitionRepository.save(competition);
+    public void toggleLike(Long competitionId, String userId) {
+        CompetitionEntity competition = competitionRepository.findById(competitionId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + competitionId));
+
+        if (competitionLikeRepository.existsByUserIdAndCompetitionEntityId(userId, competitionId)) {
+            // 좋아요가 이미 존재하면 삭제
+            CompetitionLikeEntity competitionLike = competitionLikeRepository.findByUserIdAndCompetitionEntityId(userId, competitionId)
+                    .orElseThrow(() -> new IllegalArgumentException("Like not found"));
+            competitionLikeRepository.delete(competitionLike);
+
+            // 좋아요 수 감소
+            if (competition.getCompetitionLike() > 0) {
+                competition.setCompetitionLike(competition.getCompetitionLike() - 1);
+                competitionRepository.save(competition);
+            }
+        } else {
+            // 좋아요가 없으면 추가
+            CompetitionLikeEntity newLike = CompetitionLikeEntity.toCompetitionLikeEntity(competition, userId);
+            competitionLikeRepository.save(newLike);
+
+            // 좋아요 수 증가
+            competition.setCompetitionLike(competition.getCompetitionLike() + 1);
+            competitionRepository.save(competition);
+        }
+    }
+
+    @Transactional
+    public boolean hasUserLikedFree(Long competitionId, String userId) {
+        return competitionLikeRepository.existsByUserIdAndCompetitionEntityId(userId, competitionId);
     }
 
     @Transactional

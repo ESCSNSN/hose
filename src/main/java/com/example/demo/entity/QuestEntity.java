@@ -1,7 +1,6 @@
 package com.example.demo.entity;
 
 import com.example.demo.dto.QuestDTO;
-import com.example.demo.repository.QuestFileRepository;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,6 +44,9 @@ public class QuestEntity extends QuestBaseEntity {
 
     @OneToMany(mappedBy = "questEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<QuestFileEntity> questFileEntityList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "questEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<QuestLikeEntity> likes = new ArrayList<>();
 
     public static QuestEntity toSaveEntity(QuestDTO questDTO) {
         QuestEntity questEntity = new QuestEntity();

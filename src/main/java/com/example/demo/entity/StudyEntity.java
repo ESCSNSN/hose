@@ -70,6 +70,9 @@ public class StudyEntity extends StudyBaseEntity {
     @OneToMany(mappedBy = "studyEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<ApplyEntity> ApplyEntityList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "studyEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<StudyLikeEntity> likes = new ArrayList<>();
+
     public static StudyEntity toSaveEntity(StudyDTO studyDTO) {
         StudyEntity studyEntity = new StudyEntity();
         studyEntity.setUserId(studyDTO.getUserID());

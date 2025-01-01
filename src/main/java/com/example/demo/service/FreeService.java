@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 public class FreeService {
     private final FreeRepository freeRepository;
     private final FreeFileRepository freeFileRepository;
+    private final FreeLikeRepository freeLikeRepository;
 
 
 
@@ -136,11 +137,35 @@ public class FreeService {
     }
 
     @Transactional
-    public void increaseLike(Long id) {
-        FreeEntity free = freeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        free.setFreeLike(free.getFreeLike() + 1);
-        freeRepository.save(free);
+    public void toggleLike(Long freeId, String userId) {
+        FreeEntity free = freeRepository.findById(freeId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + freeId));
+
+        if (freeLikeRepository.existsByUserIdAndFreeEntityId(userId, freeId)) {
+            // 좋아요가 이미 존재하면 삭제
+            FreeLikeEntity like = freeLikeRepository.findByUserIdAndFreeEntityId(userId, freeId)
+                    .orElseThrow(() -> new IllegalArgumentException("Like not found"));
+            freeLikeRepository.delete(like);
+
+            // 좋아요 수 감소
+            if (free.getFreeLike() > 0) {
+                free.setFreeLike(free.getFreeLike() - 1);
+                freeRepository.save(free);
+            }
+        } else {
+            // 좋아요가 없으면 추가
+            FreeLikeEntity newLike = FreeLikeEntity.toFreeLikeEntity(free, userId);
+            freeLikeRepository.save(newLike);
+
+            // 좋아요 수 증가
+            free.setFreeLike(free.getFreeLike() + 1);
+            freeRepository.save(free);
+        }
+    }
+
+    @Transactional
+    public boolean hasUserLikedFree(Long freeId, String userId) {
+        return freeLikeRepository.existsByUserIdAndFreeEntityId(userId, freeId);
     }
 
 

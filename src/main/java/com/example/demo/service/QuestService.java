@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class QuestService {
     private final QuestRepository questRepository;
     private final QuestFileRepository questFileRepository;
+    private final QuestLikeRepository questLikeRepository;
 
     public void deleteByAdmin(Long id) {
         questRepository.deleteById(id);
@@ -136,11 +137,35 @@ public class QuestService {
     }
 
     @Transactional
-    public void increaseLike(Long id) {
-        QuestEntity quest = questRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        quest.setQuestLike(quest.getQuestLike() + 1);
-        questRepository.save(quest);
+    public void toggleLike(Long questId, String userId) {
+        QuestEntity quest = questRepository.findById(questId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + questId));
+
+        if (questLikeRepository.existsByUserIdAndQuestEntityId(userId, questId)) {
+            // 좋아요가 이미 존재하면 삭제
+            QuestLikeEntity like = questLikeRepository.findByUserIdAndQuestEntityId(userId, questId)
+                    .orElseThrow(() -> new IllegalArgumentException("Like not found"));
+            questLikeRepository.delete(like);
+
+            // 좋아요 수 감소
+            if (quest.getQuestLike() > 0) {
+                quest.setQuestLike(quest.getQuestLike() - 1);
+                questRepository.save(quest);
+            }
+        } else {
+            // 좋아요가 없으면 추가
+            QuestLikeEntity newLike = QuestLikeEntity.toQuestLikeEntity(quest, userId);
+            questLikeRepository.save(newLike);
+
+            // 좋아요 수 증가
+            quest.setQuestLike(quest.getQuestLike() + 1);
+            questRepository.save(quest);
+        }
+    }
+
+    @Transactional
+    public boolean hasUserLikedQuest(Long questId, String userId) {
+        return questLikeRepository.existsByUserIdAndQuestEntityId(userId, questId);
     }
 
 

@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -117,14 +119,33 @@ public class CodingController {
         }
     }
 
-    // POST /api/board/free/{id}/like
+    // POST /api/board/quest/{id}/like
     @PostMapping("/coding/{id}/like")
-    public ResponseEntity<Void> likeQuest(
+    public ResponseEntity<String> toggleLikeQuest(
             @PathVariable Long id,
             HttpServletRequest request) {
         String userId = (String) request.getAttribute("username");
-        codingService.increaseLike(id);
-        return ResponseEntity.ok().build(); // 200 OK
+
+        try {
+            codingService.toggleLike(id, userId);
+            return ResponseEntity.ok("Like toggled successfully");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // 새로운 좋아요 상태 확인 엔드포인트
+    @GetMapping("/coding/{id}/like-status")
+    public ResponseEntity<Map<String, Object>> checkLikeStatus(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username"); // 또는 다른 방식으로 사용자 ID 가져오기
+
+        boolean isLiked = codingService.hasUserLikedCoding(id, userId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("liked", isLiked);
+        return ResponseEntity.ok(response);
     }
 
     // POST /api/board/free/{id}/scrap
