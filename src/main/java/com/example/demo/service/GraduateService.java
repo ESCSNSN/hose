@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.FreeDTO;
 import com.example.demo.dto.GraduateDTO;
+import com.example.demo.dto.MainGraduateDTO;
 import com.example.demo.entity.FreeEntity;
 import com.example.demo.entity.FreeFileEntity;
 import com.example.demo.entity.GraduateEntity;
@@ -175,6 +176,29 @@ public class GraduateService {
                 graduate.getGraduateLike(),
                 graduate.getScrap()
         ));
+    }
+
+    @Transactional
+    public List<MainGraduateDTO> getTop3FreeGraduates() {
+        Pageable pageable = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "graduateCreatedTime"));
+        List<GraduateEntity> graduates = graduateRepository.findTop3GraduatesByGraduateId("Free", pageable);
+        return graduates.stream()
+                .map(MainGraduateDTO::toMainGraduateDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * graduateId가 "Quest"인 상위 3개의 Graduate 게시글을 조회
+     *
+     * @return List<MainGraduateDTO> 상위 3개의 Graduate DTO 리스트
+     */
+    @Transactional
+    public List<MainGraduateDTO> getTop3QuestGraduates() {
+        Pageable pageable = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "graduateCreatedTime"));
+        List<GraduateEntity> graduates = graduateRepository.findTop3GraduatesByGraduateId("Quest", pageable);
+        return graduates.stream()
+                .map(MainGraduateDTO::toMainGraduateDTO)
+                .collect(Collectors.toList());
     }
 }
 

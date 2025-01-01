@@ -27,4 +27,7 @@ public interface GraduateRepository extends JpaRepository<GraduateEntity,Long> {
 
     List<GraduateEntity> findByGraduateLikeGreaterThanEqualOrderByGraduateCreatedTimeDesc(int graduateLike, Pageable pageable);
     List<GraduateEntity> findByUserId(String userId);
+
+    @Query("SELECT g FROM GraduateEntity g WHERE g.graduateId = :graduateId ORDER BY g.graduateCreatedTime DESC")
+    List<GraduateEntity> findTop3GraduatesByGraduateId(@Param("graduateId") String graduateId, Pageable pageable);
 }
