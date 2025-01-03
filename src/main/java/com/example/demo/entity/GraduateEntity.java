@@ -50,6 +50,9 @@ public class GraduateEntity extends GraduateBaseEntity {
     @OneToMany(mappedBy = "graduateEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<GraduateLikeEntity> likes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "graduateEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<GraduateScrapEntity> scraps = new ArrayList<>();
+
 
 
     public static GraduateEntity toSaveEntity(GraduateDTO graduateDTO) {

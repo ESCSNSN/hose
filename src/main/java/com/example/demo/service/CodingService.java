@@ -1,10 +1,7 @@
 package com.example.demo.service;
 
 
-import com.example.demo.dto.CodingDTO;
-import com.example.demo.dto.CompetitionDTO;
-import com.example.demo.dto.MainCodingDTO;
-import com.example.demo.dto.QuestDTO;
+import com.example.demo.dto.*;
 import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
@@ -31,7 +28,7 @@ public class CodingService {
     private final CodingRepository codingRepository;
     private final CodingFileRepository codingFileRepository;
     private final CodingLikeRepository codingLikeRepository;
-
+    private final CodingScrapRepository codingScrapRepository;
 
 
     public void save(CodingDTO codingDTO) throws IOException {
@@ -172,11 +169,63 @@ public class CodingService {
 
 
     @Transactional
-    public void toggleScrap(Long id) {
-        CodingEntity coding = codingRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        coding.setScrap(coding.getScrap() == 1 ? 0 : 1);
-        codingRepository.save(coding);
+    public boolean toggleScrap(Long codingId, String userId) {
+
+        CodingEntity coding = codingRepository.findById(codingId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + codingId));
+
+        if (codingScrapRepository.existsByUserIdAndCodingEntityId(userId, codingId)) {
+            // 스크랩이 이미 존재하면 삭제
+            CodingScrapEntity scrap = codingScrapRepository.findByUserIdAndCodingEntityId(userId, codingId)
+                    .orElseThrow(() -> new IllegalArgumentException("Scrap not found"));
+            codingScrapRepository.delete(scrap);
+
+            // 스크랩 수 감소
+            if (coding.getScrap() > 0) {
+                coding.setScrap(coding.getScrap() - 1);
+                codingRepository.save(coding);
+            }
+            return false; // 스크랩 해제됨
+        } else {
+            // 스크랩이 없으면 추가
+            CodingScrapEntity newScrap = CodingScrapEntity.toScrapEntity(coding, userId);
+            codingScrapRepository.save(newScrap);
+
+            // 스크랩 수 증가
+            coding.setScrap(coding.getScrap() + 1);
+            codingRepository.save(coding);
+            return true; // 스크랩 추가됨
+        }
+    }
+
+    @Transactional
+    public boolean hasUserScrappedCoding(Long codingId, String userId) {
+        return codingScrapRepository.existsByUserIdAndCodingEntityId(userId, codingId);
+    }
+
+    @Transactional
+    public List<CodingDTO> getScrappedCoding(String userId, Long lastId, int limit) {
+        PageRequest pageRequest = PageRequest.of(0, limit);
+        List<CodingScrapEntity> scraps;
+
+        if (lastId != null) {
+            scraps = codingScrapRepository.findTopByUserIdAndIdLessThan(userId, lastId, pageRequest);
+        } else {
+            scraps = codingScrapRepository.findTopByUserIdAndIdLessThan(userId, Long.MAX_VALUE, pageRequest);
+        }
+
+        return scraps.stream()
+                .map(scrap -> {
+                    CodingEntity coding = scrap.getCodingEntity();
+                    return new CodingDTO(
+                            coding.getId(),
+                            coding.getCodingtype(),
+                            coding.getCodingtitle(),
+                            coding.getCodingCreatedTime(),
+                            coding.getScrap()
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     public List<CodingDTO> getTopLikedCodings() {

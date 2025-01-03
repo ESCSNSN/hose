@@ -143,14 +143,36 @@ public class QuestController {
         return ResponseEntity.ok(response);
     }
 
-    // POST /api/board/quest/{id}/scrap
+    // 새로운 스크랩 토글 엔드포인트
     @PostMapping("/quest/{id}/scrap")
-    public ResponseEntity<Void> scrapQuest(
+    public ResponseEntity<Map<String, Object>> toggleScrapQuest(
             @PathVariable Long id,
             HttpServletRequest request) {
         String userId = (String) request.getAttribute("username");
-        questService.toggleScrap(id);
-        return ResponseEntity.ok().build(); // 200 OK
+
+        try {
+            boolean isScrapped = questService.toggleScrap(id, userId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Scrap toggled successfully");
+            response.put("scrapped", isScrapped);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // 새로운 좋아요 상태 확인 엔드포인트
+    @GetMapping("/quest/{id}/scrap-status")
+    public ResponseEntity<Map<String, Object>> checkScrapStatus(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        String userId = "202001685"; // 또는 다른 방식으로 사용자 ID 가져오기
+
+        boolean isScraped = questService.hasUserScrappedQuest(id, userId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("scrap", isScraped);
+        return ResponseEntity.ok(response);
     }
 
 

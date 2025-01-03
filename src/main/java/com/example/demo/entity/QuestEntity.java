@@ -48,6 +48,9 @@ public class QuestEntity extends QuestBaseEntity {
     @OneToMany(mappedBy = "questEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<QuestLikeEntity> likes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "questEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<QuestScrapEntity> scraps = new ArrayList<>();
+
     public static QuestEntity toSaveEntity(QuestDTO questDTO) {
         QuestEntity questEntity = new QuestEntity();
         questEntity.setUserId(questDTO.getUserID());

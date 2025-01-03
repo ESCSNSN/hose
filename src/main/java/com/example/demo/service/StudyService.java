@@ -21,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +31,7 @@ public class StudyService {
     private final StudyFileRepository studyFileRepository;
     private final ApplyRepository applyRepository;
     private final StudyLikeRepository studyLikeRepository;
+    private final StudyScrapRepository studyScrapRepository;
 
 
     public void save(StudyDTO studyDTO) throws IOException {
@@ -227,11 +229,100 @@ public class StudyService {
 
 
     @Transactional
-    public void toggleScrap(Long id) {
-        StudyEntity study = studyRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        study.setScrap(study.getScrap() == 1 ? 0 : 1);
-        studyRepository.save(study);
+    public boolean toggleScrap(Long studyId, String userId) {
+        StudyEntity study = studyRepository.findById(studyId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + studyId));
+
+        if (studyScrapRepository.existsByUserIdAndStudyEntityId(userId, studyId)) {
+            // 스크랩이 이미 존재하면 삭제
+            StudyScrapEntity scrap = studyScrapRepository.findByUserIdAndStudyEntityId(userId, studyId)
+                    .orElseThrow(() -> new IllegalArgumentException("Scrap not found"));
+            studyScrapRepository.delete(scrap);
+
+            // 스크랩 수 감소
+            if (study.getScrap() > 0) {
+                study.setScrap(study.getScrap() - 1);
+                studyRepository.save(study);
+            }
+            return false; // 스크랩 해제됨
+        } else {
+            // 스크랩이 없으면 추가
+            StudyScrapEntity newScrap = StudyScrapEntity.toScrapEntity(study, userId);
+            studyScrapRepository.save(newScrap);
+
+            // 스크랩 수 증가
+            study.setScrap(study.getScrap() + 1);
+            studyRepository.save(study);
+            return true; // 스크랩 추가됨
+        }
+    }
+
+    @Transactional
+    public boolean hasUserScrappedStudy(Long questId, String userId) {
+        return studyScrapRepository.existsByUserIdAndStudyEntityId(userId, questId);
+    }
+
+
+    @Transactional
+    public StudyResponse getScrappedQuests(String userId, Long lastStudyId, String studyId, int limit) {
+        // 페이징 설정: limit + 1 조회하여 hasMore 판단
+        Pageable pageable = PageRequest.of(0, limit + 1);
+
+        List<StudyScrapEntity> scraps;
+        if (lastStudyId != null) {
+            scraps = studyScrapRepository.findByUserIdAndStudyEntityIdLessThanOrderByStudyEntityIdDesc(userId, lastStudyId, studyId, pageable);
+        } else {
+            scraps = studyScrapRepository.findByUserIdOrderByStudyEntityIdDesc(userId, studyId, pageable);
+        }
+
+        if (scraps.isEmpty()) {
+            return new StudyResponse(Collections.emptyList(), false);
+        }
+
+        // 스터디 엔티티 ID 추출
+        List<Long> studyIds = scraps.stream()
+                .map(scrap -> scrap.getStudyEntity().getId())
+                .collect(Collectors.toList());
+
+        // 스터디 엔티티 조회
+        List<StudyEntity> studies = studyRepository.findAllByIdIn(studyIds);
+
+        // 스터디 ID를 키로 하는 맵 생성 (빠른 조회를 위해)
+        Map<Long, StudyEntity> studyMap = studies.stream()
+                .collect(Collectors.toMap(StudyEntity::getId, Function.identity()));
+
+        LocalDate today = LocalDate.now();
+
+        // StudyDTO로 변환하면서 daysLeft 계산
+        List<StudyDTO> studyDTOs = scraps.stream()
+                .map(scrap -> {
+                    StudyEntity study = studyMap.get(scrap.getStudyEntity().getId());
+                    if (study == null) {
+                        return null; // 해당 스터디가 없는 경우 null로 설정
+                    }
+                    long daysLeft = ChronoUnit.DAYS.between(today, study.getDeadline().toLocalDate());
+                    return new StudyDTO(
+                            study.getId(),
+                            study.getStudyId(),
+                            study.getStudytitle(),
+                            study.getStartTime(),
+                            study.getDeadline(),
+                            study.getRecruit(),
+                            study.getCountMember(),
+                            study.getScrap(),
+                            daysLeft
+                    );
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        boolean hasMore = false;
+        if (studyDTOs.size() > limit) {
+            hasMore = true;
+            studyDTOs.remove(studyDTOs.size() - 1); // limit을 초과한 마지막 항목 제거
+        }
+
+        return new StudyResponse(studyDTOs, hasMore);
     }
 
     public List<StudyDTO> getTopLikedFrees() {

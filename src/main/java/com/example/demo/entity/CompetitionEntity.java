@@ -49,6 +49,9 @@ public class CompetitionEntity extends CompetitionBaseEntity {
     @OneToMany(mappedBy = "competitionEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CompetitionLikeEntity> likes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "competitionEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<CompetitionScrapEntity> scraps = new ArrayList<>();
+
     public static CompetitionEntity toSaveEntity(CompetitionDTO competitionDTO) {
         CompetitionEntity competitionEntity = new CompetitionEntity();
         competitionEntity.setUserId(competitionDTO.getUserId());

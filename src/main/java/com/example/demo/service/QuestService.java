@@ -29,6 +29,7 @@ public class QuestService {
     private final QuestRepository questRepository;
     private final QuestFileRepository questFileRepository;
     private final QuestLikeRepository questLikeRepository;
+    private final QuestScrapRepository questScrapRepository;
 
     public void deleteByAdmin(Long id) {
         questRepository.deleteById(id);
@@ -170,13 +171,65 @@ public class QuestService {
 
 
     @Transactional
-    public void toggleScrap(Long id) {
-        QuestEntity free = questRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        free.setScrap(free.getScrap() == 1 ? 0 : 1);
-        questRepository.save(free);
+    public boolean toggleScrap(Long questId, String userId) {
+        QuestEntity quest = questRepository.findById(questId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + questId));
+
+        if (questScrapRepository.existsByUserIdAndQuestEntityId(userId, questId)) {
+            // 스크랩이 이미 존재하면 삭제
+            QuestScrapEntity scrap = questScrapRepository.findByUserIdAndQuestEntityId(userId, questId)
+                    .orElseThrow(() -> new IllegalArgumentException("Scrap not found"));
+            questScrapRepository.delete(scrap);
+
+            // 스크랩 수 감소
+            if (quest.getScrap() > 0) {
+                quest.setScrap(quest.getScrap() - 1);
+                questRepository.save(quest);
+            }
+            return false; // 스크랩 해제됨
+        } else {
+            // 스크랩이 없으면 추가
+            QuestScrapEntity newScrap = QuestScrapEntity.toScrapEntity(quest, userId);
+            questScrapRepository.save(newScrap);
+
+            // 스크랩 수 증가
+            quest.setScrap(quest.getScrap() + 1);
+            questRepository.save(quest);
+            return true; // 스크랩 추가됨
+        }
     }
 
+    @Transactional
+    public boolean hasUserScrappedQuest(Long questId, String userId) {
+        return questScrapRepository.existsByUserIdAndQuestEntityId(userId, questId);
+    }
+
+
+    @Transactional
+    public List<QuestDTO> getScrappedQuests(String userId, Long lastId, int limit) {
+        PageRequest pageRequest = PageRequest.of(0, limit);
+        List<QuestScrapEntity> scraps;
+
+        if (lastId != null) {
+            scraps = questScrapRepository.findTopByUserIdAndIdLessThan(userId, lastId, pageRequest);
+        } else {
+            scraps = questScrapRepository.findTopByUserIdAndIdLessThan(userId, Long.MAX_VALUE, pageRequest);
+        }
+
+        return scraps.stream()
+                .map(scrap -> {
+                    QuestEntity quest = scrap.getQuestEntity();
+                    return new QuestDTO(
+                            quest.getId(),
+                            quest.getQuesttitle(),
+                            quest.getQuestCreatedTime(),
+                            quest.getQuestLike(),
+                            quest.getScrap()
+                            // 필요한 추가 필드
+                    );
+                })
+                .collect(Collectors.toList());
+    }
     public List<QuestDTO> getTopLikedFrees() {
         int likeThreshold = 10;
         int limit = 3;

@@ -29,6 +29,7 @@ public class QuestDTO {
 
     private int scrap;
     private int questLike;
+    private boolean scrapped; // 사용자가 스크랩했는지 여부 추가
 
     @JsonIgnore
     private List<MultipartFile> questFile;

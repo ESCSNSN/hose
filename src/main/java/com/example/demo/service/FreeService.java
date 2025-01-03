@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.FreeDTO;
 import com.example.demo.dto.MainFreeDTO;
+import com.example.demo.dto.QuestDTO;
 import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
@@ -28,6 +29,7 @@ public class FreeService {
     private final FreeRepository freeRepository;
     private final FreeFileRepository freeFileRepository;
     private final FreeLikeRepository freeLikeRepository;
+    private final FreeScrapRepository freeScrapRepository;
 
 
 
@@ -170,11 +172,63 @@ public class FreeService {
 
 
     @Transactional
-    public void toggleScrap(Long id) {
-        FreeEntity free = freeRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        free.setScrap(free.getScrap() == 1 ? 0 : 1);
-        freeRepository.save(free);
+    public boolean toggleScrap(Long freeId, String userId) {
+
+        FreeEntity free = freeRepository.findById(freeId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + freeId));
+
+        if (freeScrapRepository.existsByUserIdAndFreeEntityId(userId, freeId)) {
+            // 스크랩이 이미 존재하면 삭제
+            FreeScrapEntity scrap = freeScrapRepository.findByUserIdAndFreeEntityId(userId, freeId)
+                    .orElseThrow(() -> new IllegalArgumentException("Scrap not found"));
+            freeScrapRepository.delete(scrap);
+
+            // 스크랩 수 감소
+            if (free.getScrap() > 0) {
+                free.setScrap(free.getScrap() - 1);
+                freeRepository.save(free);
+            }
+            return false; // 스크랩 해제됨
+        } else {
+            // 스크랩이 없으면 추가
+            FreeScrapEntity newScrap = FreeScrapEntity.toScrapEntity(free, userId);
+            freeScrapRepository.save(newScrap);
+
+            // 스크랩 수 증가
+            free.setScrap(free.getScrap() + 1);
+            freeRepository.save(free);
+            return true; // 스크랩 추가됨
+        }
+    }
+
+    @Transactional
+    public boolean hasUserScrappedFree(Long questId, String userId) {
+        return freeScrapRepository.existsByUserIdAndFreeEntityId(userId, questId);
+    }
+
+    @Transactional
+    public List<FreeDTO> getScrappedFree(String userId, Long lastId, int limit) {
+        PageRequest pageRequest = PageRequest.of(0, limit);
+        List<FreeScrapEntity> scraps;
+
+        if (lastId != null) {
+            scraps = freeScrapRepository.findTopByUserIdAndIdLessThan(userId, lastId, pageRequest);
+        } else {
+            scraps = freeScrapRepository.findTopByUserIdAndIdLessThan(userId, Long.MAX_VALUE, pageRequest);
+        }
+
+        return scraps.stream()
+                .map(scrap -> {
+                    FreeEntity free = scrap.getFreeEntity();
+                    return new FreeDTO(
+                            free.getId(),
+                            free.getFreetitle(),
+                            free.getFreeCreatedTime(),
+                            free.getFreeLike(),
+                            free.getScrap()
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     public List<FreeDTO> getTopLikedFrees() {

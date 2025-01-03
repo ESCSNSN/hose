@@ -3,9 +3,11 @@ package com.example.demo.service;
 import com.example.demo.dto.FreeDTO;
 import com.example.demo.dto.GraduateDTO;
 import com.example.demo.dto.MainGraduateDTO;
+import com.example.demo.dto.QuestDTO;
 import com.example.demo.entity.*;
 import com.example.demo.repository.GraduateLikeRepository;
 import com.example.demo.repository.GraduateRepository;
+import com.example.demo.repository.GraduateScrapRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +32,7 @@ public class GraduateService {
 
     private final GraduateRepository graduateRepository;
     private final GraduateLikeRepository graduateLikeRepository;
+    private final GraduateScrapRepository graduateScrapRepository;
 
     public void save(GraduateDTO graduateDTO) throws IOException {
         System.out.println("GraduateDTO.getGraduateId(): " + graduateDTO.getGraduateId());
@@ -145,11 +148,65 @@ public class GraduateService {
 
 
     @Transactional
-    public void toggleScrap(Long id) {
-        GraduateEntity graduate = graduateRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Coding not found with id: " + id));
-        graduate.setScrap(graduate.getScrap() == 1 ? 0 : 1);
-        graduateRepository.save(graduate);
+    public boolean toggleScrap(Long graduateId, String userId) {
+        GraduateEntity graduate = graduateRepository.findById(graduateId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + graduateId));
+
+        if (graduateScrapRepository.existsByUserIdAndGraduateEntityId(userId, graduateId)) {
+            // 스크랩이 이미 존재하면 삭제
+            GraduateScrapEntity scrap = graduateScrapRepository.findByUserIdAndGraduateEntityId(userId, graduateId)
+                    .orElseThrow(() -> new IllegalArgumentException("Scrap not found"));
+            graduateScrapRepository.delete(scrap);
+
+            // 스크랩 수 감소
+            if (graduate.getScrap() > 0) {
+                graduate.setScrap(graduate.getScrap() - 1);
+                graduateRepository.save(graduate);
+            }
+            return false; // 스크랩 해제됨
+        } else {
+            // 스크랩이 없으면 추가
+            GraduateScrapEntity newScrap = GraduateScrapEntity.toScrapEntity(graduate, userId);
+            graduateScrapRepository.save(newScrap);
+
+            // 스크랩 수 증가
+            graduate.setScrap(graduate.getScrap() + 1);
+            graduateRepository.save(graduate);
+            return true; // 스크랩 추가됨
+        }
+    }
+
+    @Transactional
+    public boolean hasUserScrappedGraduate(Long graduateId, String userId) {
+        return graduateScrapRepository.existsByUserIdAndGraduateEntityId(userId, graduateId);
+    }
+
+
+    @Transactional
+    public List<GraduateDTO> getScrappedGraduate(String userId, Long lastGraduateId,String graduateId, int limit) {
+        PageRequest pageRequest = PageRequest.of(0, limit);
+        List<GraduateScrapEntity> scraps;
+
+        if (lastGraduateId != null) {
+            scraps = graduateScrapRepository.findByUserIdAndGraduateEntityIdLessThanOrderByGraduateEntityIdDesc(userId, lastGraduateId, graduateId, pageRequest);
+        } else {
+            scraps = graduateScrapRepository.findByUserIdOrderByGraduateEntityIdDesc(userId, graduateId, pageRequest);
+        }
+
+        return scraps.stream()
+                .map(scrap -> {
+                    GraduateEntity graduate = scrap.getGraduateEntity();
+                    return new GraduateDTO(
+                            graduate.getId(),
+                            graduate.getGraduateId(),
+                            graduate.getGraduatetitle(),
+                            graduate.getGraduateCreatedTime(),
+                            graduate.getGraduateLike(),
+                            graduate.getScrap()
+                            // 필요한 추가 필드
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     public List<GraduateDTO> getTopLikedFrees() {

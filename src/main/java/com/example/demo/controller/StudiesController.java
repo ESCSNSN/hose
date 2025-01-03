@@ -108,7 +108,7 @@ public class StudiesController {
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
             HttpServletRequest request) {
-        String userId = (String) request.getAttribute("username");
+        String userId = "hose";
         boolean isDeleted = studyService.delete(id, userId);
         if (isDeleted) {
             return ResponseEntity.noContent().build();
@@ -146,14 +146,36 @@ public class StudiesController {
         return ResponseEntity.ok(response);
     }
 
-    // POST /api/board/quest/{id}/scrap
+    // 새로운 스크랩 토글 엔드포인트
     @PostMapping("/studies/{id}/scrap")
-    public ResponseEntity<Void> scrapQuest(
+    public ResponseEntity<Map<String, Object>> toggleScrapStudy(
             @PathVariable Long id,
             HttpServletRequest request) {
         String userId = (String) request.getAttribute("username");
-        studyService.toggleScrap(id);
-        return ResponseEntity.ok().build(); // 200 OK
+
+        try {
+            boolean isScrapped = studyService.toggleScrap(id, userId);
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Scrap toggled successfully");
+            response.put("scrapped", isScrapped);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // 새로운 좋아요 상태 확인 엔드포인트
+    @GetMapping("/studies/{id}/scrap-status")
+    public ResponseEntity<Map<String, Object>> checkScrapStatus(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+
+        boolean isScraped = studyService.hasUserScrappedStudy(id, userId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("scrap", isScraped);
+        return ResponseEntity.ok(response);
     }
 
 

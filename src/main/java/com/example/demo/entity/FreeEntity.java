@@ -52,6 +52,9 @@ public class FreeEntity extends FreeBaseEntity {
     @OneToMany(mappedBy = "freeEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<FreeLikeEntity> likes = new ArrayList<>();
 
+    @OneToMany(mappedBy = "freeEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<FreeScrapEntity> scraps = new ArrayList<>();
+
     public static FreeEntity toSaveEntity(FreeDTO freeDTO) {
         FreeEntity freeEntity = new FreeEntity();
         freeEntity.setUserId(freeDTO.getUserID());

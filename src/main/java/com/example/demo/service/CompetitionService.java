@@ -8,6 +8,7 @@ import com.example.demo.entity.*;
 import com.example.demo.repository.CompetitionFileRepository;
 import com.example.demo.repository.CompetitionLikeRepository;
 import com.example.demo.repository.CompetitionRepository;
+import com.example.demo.repository.CompetitionScrapRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class CompetitionService {
     private final CompetitionRepository competitionRepository;
     private final CompetitionFileRepository competitionFileRepository;
     private final CompetitionLikeRepository competitionLikeRepository;
+    private final CompetitionScrapRepository competitionScrapRepository;
 
 
 
@@ -186,11 +188,63 @@ public class CompetitionService {
     }
 
     @Transactional
-    public void toggleScrap(Long id) {
-        CompetitionEntity competition = competitionRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Competition not found with id: " + id));
-        competition.setScrap(competition.getScrap() == 1 ? 0 : 1);
-        competitionRepository.save(competition);
+    public boolean toggleScrap(Long competitionId, String userId) {
+
+        CompetitionEntity competition= competitionRepository.findById(competitionId)
+                .orElseThrow(() -> new IllegalArgumentException("Quest not found with id: " + competitionId));
+
+        if (competitionScrapRepository.existsByUserIdAndCompetitionEntityId(userId, competitionId)) {
+            // 스크랩이 이미 존재하면 삭제
+            CompetitionScrapEntity scrap = competitionScrapRepository.findByUserIdAndCompetitionEntityId(userId, competitionId)
+                    .orElseThrow(() -> new IllegalArgumentException("Scrap not found"));
+            competitionScrapRepository.delete(scrap);
+
+            // 스크랩 수 감소
+            if (competition.getScrap() > 0) {
+                competition.setScrap(competition.getScrap() - 1);
+                competitionRepository.save(competition);
+            }
+            return false; // 스크랩 해제됨
+        } else {
+            // 스크랩이 없으면 추가
+            CompetitionScrapEntity newScrap = CompetitionScrapEntity.toScrapEntity(competition, userId);
+            competitionScrapRepository.save(newScrap);
+
+            // 스크랩 수 증가
+            competition.setScrap(competition.getScrap() + 1);
+            competitionRepository.save(competition);
+            return true; // 스크랩 추가됨
+        }
+    }
+
+    @Transactional
+    public boolean hasUserScrappedCompetition(Long competitionId, String userId) {
+        return competitionScrapRepository.existsByUserIdAndCompetitionEntityId(userId, competitionId);
+    }
+
+    @Transactional
+    public List<CompetitionDTO> getScrappedCompetition(String userId, Long lastId, int limit) {
+        PageRequest pageRequest = PageRequest.of(0, limit);
+        List<CompetitionScrapEntity> scraps;
+
+        if (lastId != null) {
+            scraps = competitionScrapRepository.findTopByUserIdAndIdLessThan(userId, lastId, pageRequest);
+        } else {
+            scraps = competitionScrapRepository.findTopByUserIdAndIdLessThan(userId, Long.MAX_VALUE, pageRequest);
+        }
+
+        return scraps.stream()
+                .map(scrap -> {
+                    CompetitionEntity competition = scrap.getCompetitionEntity();
+                    return new CompetitionDTO(
+                            competition.getId(),
+                            competition.getCompetitiontitle(),
+                            competition.getCompetitionCreatedTime(),
+                            competition.getCompetitionLike(),
+                            competition.getScrap()
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
     @Transactional
