@@ -41,3 +41,14 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+jar {
+    archiveBaseName.set("hose")
+    archiveVersion.set("1.0")
+}
+
+bootJar {
+    archiveBaseName.set("hose")
+    archiveVersion.set("1.0")
+}
+
