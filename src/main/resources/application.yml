@@ -38,4 +38,4 @@ logging:
 
 auth:
   service:
-    url: http://localhost:8081
+    url: http://172.19.0.2:8081
