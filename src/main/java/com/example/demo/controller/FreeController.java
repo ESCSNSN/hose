@@ -68,7 +68,7 @@ public class FreeController {
     // POST /api/board/free/save
     @PostMapping(value = "/free/save", consumes = {"multipart/form-data"})
     public ResponseEntity<FreeDTO> save(@ModelAttribute FreeDTO freeDTO, HttpServletRequest request) throws IOException {
-        String userId = "202001685";
+        String userId = (String) request.getAttribute("username");
         freeDTO.setUserID(userId);
         freeService.save(freeDTO);
         return ResponseEntity.ok(freeDTO); // 200 OK
