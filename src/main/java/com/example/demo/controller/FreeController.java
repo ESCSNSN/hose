@@ -3,6 +3,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.FreeDTO;
+import com.example.demo.dto.QuestDTO;
 import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.service.FreeService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,17 +68,18 @@ public class FreeController {
     // POST /api/board/free/save
     @PostMapping(value = "/free/save", consumes = {"multipart/form-data"})
     public ResponseEntity<FreeDTO> save(@ModelAttribute FreeDTO freeDTO, HttpServletRequest request) throws IOException {
-        String userId = (String) request.getAttribute("username");
+        String userId = "202001685";
         freeDTO.setUserID(userId);
         freeService.save(freeDTO);
         return ResponseEntity.ok(freeDTO); // 200 OK
     }
 
 
-    // GET /api/board/free/{id}
+    // GET /api/board/quest/{id}
     @GetMapping("/free/{id}")
-    public FreeDTO findById(@PathVariable Long id) {
-        return freeService.findByID(id);
+    public ResponseEntity<FreeDTO> findById(@PathVariable Long id) {
+        FreeDTO dto = freeService.findByID(id);
+        return ResponseEntity.ok(dto);
     }
 
     // GET /api/board/free/update/{id} (업데이트 폼 요청)

@@ -81,9 +81,11 @@ public class StudiesController {
     }
 
     // GET /api/board/coding/{id}
+    // GET /api/board/quest/{id}
     @GetMapping("/studies/{id}")
-    public StudyDTO findById(@PathVariable Long id) {
-        return studyService.findByID(id);
+    public ResponseEntity<StudyDTO> findById(@PathVariable Long id) {
+        StudyDTO dto = studyService.findByID(id);
+        return ResponseEntity.ok(dto);
     }
 
     // GET /api/board/quest/update/{id} (업데이트 폼 요청)

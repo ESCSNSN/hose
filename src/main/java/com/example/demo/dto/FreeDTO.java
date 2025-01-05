@@ -7,10 +7,12 @@ import com.example.demo.entity.FreeFileEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -36,6 +38,7 @@ public class FreeDTO {
     private List<String> originalFileName;
     private List<String> storedFileName;
     private int fileAttached;
+    private List<String> imageUrls;
 
     public FreeDTO(Long id, String freeTitle, LocalDateTime freeCreatedTime,Integer freeLike,Integer scrap) {
         this.id = id;
@@ -71,6 +74,14 @@ public class FreeDTO {
             }
             freeDTO.setOriginalFileName(originalFileNameList);
             freeDTO.setStoredFileName(storedFileNameList);
+
+            List<String> imageUrls = freeEntity.getFreeFileEntityList().stream()
+                    .map(file -> {
+                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                        return baseUrl + "/upload/" + file.getStoredFileName();
+                    })
+                    .collect(Collectors.toList());
+            freeDTO.setImageUrls(imageUrls);
         }
         return freeDTO;
     }

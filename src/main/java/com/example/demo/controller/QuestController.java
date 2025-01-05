@@ -35,7 +35,8 @@ public class QuestController {
 
     // GET /api/board/quest
     @GetMapping("/quest")
-    public Page<QuestDTO> paging(@RequestParam(value = "page", required = false) Integer page,
+    public Page<QuestDTO> paging(
+                                 @RequestParam(value = "page", required = false) Integer page,
                                  @RequestParam(value = "size", defaultValue = "10") Integer size,
                                  @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
                                  @RequestParam(value = "contentKeyword", required = false) String contentKeyword,
@@ -71,7 +72,7 @@ public class QuestController {
     // POST /api/board/quest/save
     @PostMapping(value = "/quest/save", consumes = {"multipart/form-data"})
     public ResponseEntity<QuestDTO> save(@ModelAttribute QuestDTO questDTO, HttpServletRequest request) throws IOException {
-        String userId = (String) request.getAttribute("username");
+        String userId = "202001685";
         questDTO.setUserID(userId);
         questService.save(questDTO);
         return ResponseEntity.ok(questDTO); // 200 OK
@@ -79,8 +80,9 @@ public class QuestController {
 
     // GET /api/board/quest/{id}
     @GetMapping("/quest/{id}")
-    public QuestDTO findById(@PathVariable Long id) {
-        return questService.findByID(id);
+    public ResponseEntity<QuestDTO> findById(@PathVariable Long id) {
+        QuestDTO dto = questService.findByID(id);
+        return ResponseEntity.ok(dto);
     }
 
     // GET /api/board/quest/update/{id} (업데이트 폼 요청)

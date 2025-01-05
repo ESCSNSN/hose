@@ -81,10 +81,11 @@ public class CodingController {
         return ResponseEntity.ok(codingDTO); // 200 OK
     }
 
-    // GET /api/board/coding/{id}
+    // GET /api/board/quest/{id}
     @GetMapping("/coding/{id}")
-    public CodingDTO findById(@PathVariable Long id) {
-        return codingService.findByID(id);
+    public ResponseEntity<CodingDTO> findById(@PathVariable Long id) {
+        CodingDTO dto = codingService.findByID(id);
+        return ResponseEntity.ok(dto);
     }
 
     // GET /api/board/notice/update/{id} (업데이트 폼 요청)

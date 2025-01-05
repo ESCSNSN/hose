@@ -5,10 +5,12 @@ import com.example.demo.entity.CodingFileEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -35,6 +37,7 @@ public class CodingDTO {
     private List<String> originalFileName;
     private List<String> storedFileName;
     private int fileAttached;
+    private List<String> imageUrls;
 
     public CodingDTO(Long id, String codingType, String codingTitle, LocalDateTime codingCreatedTime,Integer scrap) {
         this.id = id;
@@ -71,6 +74,14 @@ public class CodingDTO {
             }
             codingDTO.setOriginalFileName(originalFileNameList);
             codingDTO.setStoredFileName(storedFileNameList);
+
+            List<String> imageUrls = codingEntity.getCodingFileEntityList().stream()
+                    .map(file -> {
+                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                        return baseUrl + "/upload/" + file.getStoredFileName();
+                    })
+                    .collect(Collectors.toList());
+            codingDTO.setImageUrls(imageUrls);
         }
         return codingDTO;
     }

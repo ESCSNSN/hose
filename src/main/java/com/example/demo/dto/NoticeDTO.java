@@ -5,10 +5,12 @@ import com.example.demo.entity.NoticeFileEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -30,6 +32,7 @@ public class NoticeDTO {
     private List<String> originalFileName;
     private List<String> storedFileName;
     private int fileAttached;
+    private List<String> imageUrls;
 
     public NoticeDTO(Long id, String userId, String noticeTitle, LocalDateTime noticeCreatedTime,boolean isPinned) {
         this.id = id;
@@ -63,6 +66,14 @@ public class NoticeDTO {
             }
             noticeDTO.setOriginalFileName(originalFileNameList);
             noticeDTO.setStoredFileName(storedFileNameList);
+
+            List<String> imageUrls = noticeEntity.getNoticeFileEntityList().stream()
+                    .map(file -> {
+                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                        return baseUrl + "/upload/" + file.getStoredFilename();
+                    })
+                    .collect(Collectors.toList());
+            noticeDTO.setImageUrls(imageUrls);
         }
         return noticeDTO;
     }

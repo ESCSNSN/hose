@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.CompetitionDTO;
 import com.example.demo.dto.FreeDTO;
+import com.example.demo.dto.QuestDTO;
 import com.example.demo.entity.CodingEntity;
 import com.example.demo.entity.CompetitionEntity;
 import com.example.demo.exception.UnauthorizedDeletionException;
@@ -81,7 +82,10 @@ public class CompetitionController {
     }
 
     @GetMapping("/competition/{id}")
-    public CompetitionDTO findById(@PathVariable Long id) {return competitionService.findByID(id);}
+    public ResponseEntity<CompetitionDTO> findById(@PathVariable Long id) {
+        CompetitionDTO dto = competitionService.findByID(id);
+        return ResponseEntity.ok(dto);
+    }
 
     // GET /api/board/competition/update/{id} (업데이트 폼 요청)
     @GetMapping("/competition/update/{id}")

@@ -35,8 +35,6 @@ public class GraduateHomeController {
         return ResponseEntity.ok(top3FreePosts);
     }
 
-
-
     @GetMapping("/top-free")
     public ResponseEntity<List<MainGraduateDTO>> getTop3FreeGraduates() {
         List<MainGraduateDTO> topFreeGraduates = graduateService.getTop3FreeGraduates();

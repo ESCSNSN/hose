@@ -5,10 +5,12 @@ import com.example.demo.entity.CompetitionFileEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -36,6 +38,7 @@ public class CompetitionDTO {
     private List<String> originalFileName; // 오타 수정
     private List<String> storedFileName;
     private int fileAttached;
+    private List<String> imageUrls;
 
     public CompetitionDTO(Long id, String competitionTitle, LocalDateTime competitionCreatedTime,Integer competitionLike, Integer scrap) {
         this.id = id;
@@ -71,6 +74,14 @@ public class CompetitionDTO {
             }
             competitionDTO.setOriginalFileName(originalFileNameList);
             competitionDTO.setStoredFileName(storedFileNameList);
+
+            List<String> imageUrls = competitionEntity.getCompetitionFileEntityList().stream()
+                    .map(file -> {
+                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                        return baseUrl + "/upload/" + file.getStoredFilename();
+                    })
+                    .collect(Collectors.toList());
+            competitionDTO.setImageUrls(imageUrls);
         }
         return competitionDTO;
     }

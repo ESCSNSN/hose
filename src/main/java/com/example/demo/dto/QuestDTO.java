@@ -6,10 +6,12 @@ import com.example.demo.entity.QuestFileEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -36,6 +38,7 @@ public class QuestDTO {
     private List<String> originalFileName;
     private List<String> storedFileName;
     private int fileAttached;
+    private List<String> imageUrls;
 
     public QuestDTO(Long id, String questTitle, LocalDateTime questCreatedTime,Integer questLike,Integer scrap) {
         this.id = id;
@@ -71,6 +74,17 @@ public class QuestDTO {
             }
             questDTO.setOriginalFileName(originalFileNameList);
             questDTO.setStoredFileName(storedFileNameList);
+
+            // 이미지 URL 생성
+            // 이미지 URL 생성
+            List<String> imageUrls = questEntity.getQuestFileEntityList().stream()
+                    .map(file -> {
+                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                        return baseUrl + "/upload/" + file.getStoredFileName();
+                    })
+                    .collect(Collectors.toList());
+            questDTO.setImageUrls(imageUrls);
+
         }
         return questDTO;
     }

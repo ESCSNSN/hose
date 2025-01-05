@@ -7,12 +7,14 @@ import com.example.demo.entity.StudyFileEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -47,6 +49,7 @@ public class StudyDTO {
     private List<String> originalFileName;
     private List<String> storedFileName;
     private int fileAttached;
+    private List<String> imageUrls;
 
     public StudyDTO(Long id, String studyID, String studyTitle,LocalDateTime startTime,LocalDateTime deadline,Integer recruit,Integer countMember,Integer scrap,Long daysLeft) {
         this.id = id;
@@ -86,8 +89,6 @@ public class StudyDTO {
             studyDTO.setDaysLeft(daysLeft);
         }
 
-
-
         if (studyEntity.getFileAttached() == 0) {
             studyDTO.setFileAttached(studyEntity.getFileAttached());
         } else {
@@ -101,6 +102,13 @@ public class StudyDTO {
             }
             studyDTO.setOriginalFileName(originalFileNameList);
             studyDTO.setStoredFileName(storedFileNameList);
+            List<String> imageUrls = studyEntity.getStudyFileEntityList().stream()
+                    .map(file -> {
+                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                        return baseUrl + "/upload/" + file.getStoredFileName();
+                    })
+                    .collect(Collectors.toList());
+            studyDTO.setImageUrls(imageUrls);
         }
         return studyDTO;
     }

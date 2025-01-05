@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.NoticeDTO;
+import com.example.demo.dto.QuestDTO;
 import com.example.demo.service.NoticeService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -52,9 +53,6 @@ public class NoticeController {
     }
 
 
-
-
-
     @PostMapping(value = "/notice/save", consumes = {"multipart/form-data"})
     public ResponseEntity<NoticeDTO> save(@ModelAttribute NoticeDTO noticeDTO, HttpServletRequest request) throws IOException {
         String role = (String) request.getAttribute("role");
@@ -67,11 +65,11 @@ public class NoticeController {
         return ResponseEntity.ok(noticeDTO); // 200 OK
     }
 
-    // GET /api/board/notice/{id}
+    // GET /api/board/quest/{id}
     @GetMapping("/notice/{id}")
     public ResponseEntity<NoticeDTO> findById(@PathVariable Long id) {
-        NoticeDTO noticeDTO = noticeService.findByID(id);
-        return ResponseEntity.ok(noticeDTO);
+        NoticeDTO dto = noticeService.findByID(id);
+        return ResponseEntity.ok(dto);
     }
 
     // GET /api/board/notice/update/{id} (업데이트 폼 요청)
