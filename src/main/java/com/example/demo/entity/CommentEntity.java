@@ -1,10 +1,12 @@
 package com.example.demo.entity;
 
+import com.example.demo.dto.CommentDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -51,6 +53,7 @@ public class CommentEntity {
     @Column(nullable = false)
     private Long targetId;
 
+
     // 생성 시 시간 자동 설정
     @PrePersist
     protected void onCreate() {
@@ -63,4 +66,5 @@ public class CommentEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
+    private Long anonymousId;
 }

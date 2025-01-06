@@ -293,6 +293,7 @@ public class StudiesController {
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
                                                  @RequestParam(required = false) Long parentCommentId,
                                                  @RequestParam String content,
+                                                 @RequestParam Long anonymousId,
                                                  HttpServletRequest request) {
         String userId = (String) request.getAttribute("username");
         CommentDTO commentDTO = new CommentDTO();
@@ -301,6 +302,7 @@ public class StudiesController {
         commentDTO.setTargetType("studies");
         commentDTO.setTargetId(id);
         commentDTO.setParentCommentId(parentCommentId);
+        commentDTO.setAnonymousId(anonymousId);
         commentService.addComment(commentDTO);
         return ResponseEntity.ok(commentDTO);
     }

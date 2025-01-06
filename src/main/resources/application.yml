@@ -9,6 +9,11 @@ spring:
     url: jdbc:mysql://database-1.ch2kge0sw1xl.ap-northeast-2.rds.amazonaws.com:3306/db_project?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: hose
     password: 1234
+  hikari:
+    maxLifetime: 28000
+    idleTimeout: 600000
+    connectionTimeout: 30000
+    maximumPoolSize: 10
   servlet:
     multipart:
       max-file-size: 50MB  # ??? ?? ??
@@ -17,7 +22,7 @@ spring:
     cache: false
 
   jpa:
-    open-in-view: false
+    open-in-view: true
     show-sql: true
     hibernate:
       ddl-auto: update
@@ -33,8 +38,9 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG  # Hibernate? ???? SQL ?? ??
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # SQL ???? ??? ??? ???
+    org.hibernate.SQL: DEBUG  # SQL ??? ??? ????
+    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG  # SQL ???? ??? ??? ???
+
 
 auth:
   service:

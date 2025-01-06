@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import com.example.demo.entity.CommentEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 public class CommentDTO {
     private Long id;
     private String content;
+    @JsonIgnore
     private String userId;
     private Long parentCommentId;
     private String targetType;
@@ -20,6 +22,7 @@ public class CommentDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<CommentDTO> replies;
+    private Long anonymousId;
 
     // 기본 생성자
     public CommentDTO() {}
@@ -36,5 +39,6 @@ public class CommentDTO {
         if (entity.getParentComment() != null) {
             this.parentCommentId = entity.getParentComment().getId();
         }
+        this.anonymousId = entity.getAnonymousId();
     }
 }
