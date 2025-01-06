@@ -289,6 +289,15 @@ public class FreeService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public List<MainFreeDTO> getTop2FreePosts() {
+        PageRequest pageable = PageRequest.of(0, 2);
+        List<FreeEntity> freePosts = freeRepository.findTop3FreePostsWithFiles(pageable);
+        return freePosts.stream()
+                .map(MainFreeDTO::toMainFreeDTO)
+                .collect(Collectors.toList());
+    }
+
     // 기존 코드에 추가
     @Transactional
     public List<FreeDTO> findAllByUserId(String userId) {
