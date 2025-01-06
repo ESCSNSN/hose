@@ -21,7 +21,10 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class FreeDTO {
     private Long id;
+
+    @JsonIgnore
     private String userID;
+
     private String boardID;
     private String freeTitle;
     private String freeContents;

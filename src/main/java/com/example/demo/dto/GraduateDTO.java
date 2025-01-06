@@ -18,7 +18,10 @@ import java.util.List;
 @NoArgsConstructor
 public class GraduateDTO {
     private Long id;
+
+    @JsonIgnore
     private String userID;
+
     private String boardID;
     private String graduateId;
     private String graduateTitle;

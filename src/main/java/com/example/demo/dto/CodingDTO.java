@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class CodingDTO {
     private Long id;
+    @JsonIgnore
     private String userID;
     private String boardID;
     private String codingTitle;

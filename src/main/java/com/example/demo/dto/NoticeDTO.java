@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class NoticeDTO {
     private Long id;
+    @JsonIgnore
     private String userId;
     private String noticeTitle;
     private String noticeContents;

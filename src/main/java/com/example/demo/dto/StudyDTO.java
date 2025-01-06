@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class StudyDTO {
     private Long id;
+    @JsonIgnore
     private String userID;
     private String boardID;
     private String studyID;

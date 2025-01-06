@@ -18,6 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 public class MainQuestDTO {
     private Long id;
+    @JsonIgnore
     private String userID;
     private String boardID;
     private String questTitle;

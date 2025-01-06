@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class CompetitionDTO {
 
     private Long id;
+    @JsonIgnore
     private String userId;
     private String boardId;
     private String competitionTitle;

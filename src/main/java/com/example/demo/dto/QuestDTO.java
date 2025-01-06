@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class QuestDTO {
     private Long id;
+    @JsonIgnore
     private String userID;
     private String boardID;
     private String questTitle;
