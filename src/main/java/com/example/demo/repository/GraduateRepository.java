@@ -2,6 +2,7 @@ package com.example.demo.repository;
 
 import com.example.demo.entity.FreeEntity;
 import com.example.demo.entity.GraduateEntity;
+import com.example.demo.entity.StudyEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,6 +29,7 @@ public interface GraduateRepository extends JpaRepository<GraduateEntity,Long> {
     List<GraduateEntity> findByGraduateLikeGreaterThanEqualOrderByGraduateCreatedTimeDesc(int graduateLike, Pageable pageable);
     List<GraduateEntity> findByUserId(String userId);
 
-    @Query("SELECT g FROM GraduateEntity g WHERE g.graduateId = :graduateId ORDER BY g.graduateCreatedTime DESC")
-    List<GraduateEntity> findTop3GraduatesByGraduateId(@Param("graduateId") String graduateId, Pageable pageable);
+
+    @Query("SELECT DISTINCT s FROM GraduateEntity s LEFT JOIN FETCH s.graduateFileEntityList WHERE s.graduateId = :graduateID ORDER BY s.graduateCreatedTime DESC, s.id DESC")
+    List<GraduateEntity> findTop3GraduatesByGraduateId(String graduateID, Pageable pageable);
 }

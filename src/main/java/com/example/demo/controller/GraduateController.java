@@ -5,6 +5,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.FreeDTO;
 import com.example.demo.dto.GraduateDTO;
+import com.example.demo.dto.QuestDTO;
 import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.service.FreeService;
 import com.example.demo.service.GraduateService;
@@ -72,10 +73,11 @@ public class GraduateController {
     }
 
     // POST /api/board/free/save
-    @PostMapping(value = "/graduate/save")
-    public ResponseEntity<GraduateDTO> save(@RequestBody GraduateDTO graduateDTO, HttpServletRequest request) throws IOException {
-        String userId = "202001685";
-        graduateDTO.setUserID(userId); // Setter 메서드 이름 수정
+    // POST /api/board/quest/save
+    @PostMapping(value = "/graduate/save", consumes = {"multipart/form-data"})
+    public ResponseEntity<GraduateDTO> save(@ModelAttribute GraduateDTO graduateDTO, HttpServletRequest request) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        graduateDTO.setUserID(userId);
         graduateService.save(graduateDTO);
         return ResponseEntity.ok(graduateDTO); // 200 OK
     }
@@ -84,8 +86,9 @@ public class GraduateController {
 
     // GET /api/board/free/{id}
     @GetMapping("/graduate/{id}")
-    public GraduateDTO findById(@PathVariable Long id) {
-        return graduateService.findByID(id);
+    public ResponseEntity<GraduateDTO> findById(@PathVariable Long id) {
+        GraduateDTO dto = graduateService.findByID(id);
+        return ResponseEntity.ok(dto);
     }
 
     // GET /api/board/free/update/{id} (업데이트 폼 요청)
@@ -93,7 +96,7 @@ public class GraduateController {
     public ResponseEntity<GraduateDTO> updateForm(
             @PathVariable Long id,
             HttpServletRequest request) {
-        String userId = "202001685";
+        String userId = (String) request.getAttribute("username");
         GraduateDTO graduateDTO = graduateService.findByID(id, userId);
         return ResponseEntity.ok(graduateDTO);
     }

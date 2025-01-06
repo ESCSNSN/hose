@@ -4,12 +4,14 @@ import com.example.demo.entity.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -34,6 +36,13 @@ public class GraduateDTO {
 
     private int scrap;
     private int graduateLike;
+
+    @JsonIgnore
+    private List<MultipartFile> graduateFile;
+    private List<String> originalFileName;
+    private List<String> storedFileName;
+    private int fileAttached;
+    private List<String> imageUrls;
 
 
 
@@ -61,6 +70,29 @@ public class GraduateDTO {
         graduateDTO.setGraduateLike(graduateEntity.getGraduateLike());
         graduateDTO.setScrap(graduateEntity.getScrap());
 
+        if (graduateEntity.getFileAttached() == 0) {
+            graduateDTO.setFileAttached(graduateEntity.getFileAttached());
+        } else {
+            List<String> originalFileNameList = new ArrayList<>();
+            List<String> storedFileNameList = new ArrayList<>();
+            graduateDTO.setFileAttached(graduateEntity.getFileAttached());
+
+            for (GraduateFileEntity graduateFileEntity : graduateEntity.getGraduateFileEntityList()) {
+                originalFileNameList.add(graduateFileEntity.getOriginalFilename());
+                storedFileNameList.add(graduateFileEntity.getStoredFilename());
+            }
+            graduateDTO.setOriginalFileName(originalFileNameList);
+            graduateDTO.setStoredFileName(storedFileNameList);
+
+            List<String> imageUrls = graduateEntity.getGraduateFileEntityList().stream()
+                    .map(file -> {
+                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+                        return baseUrl + "/upload/" + file.getStoredFilename();
+                    })
+                    .collect(Collectors.toList());
+            graduateDTO.setImageUrls(imageUrls);
+        }
         return graduateDTO;
+
     }
 }

@@ -5,6 +5,7 @@ import com.example.demo.dto.GraduateDTO;
 import com.example.demo.dto.MainGraduateDTO;
 import com.example.demo.dto.QuestDTO;
 import com.example.demo.entity.*;
+import com.example.demo.repository.GraduateFileReposiory;
 import com.example.demo.repository.GraduateLikeRepository;
 import com.example.demo.repository.GraduateRepository;
 import com.example.demo.repository.GraduateScrapRepository;
@@ -33,12 +34,30 @@ public class GraduateService {
     private final GraduateRepository graduateRepository;
     private final GraduateLikeRepository graduateLikeRepository;
     private final GraduateScrapRepository graduateScrapRepository;
+    private final GraduateFileReposiory graduateFileReposiory;
 
     public void save(GraduateDTO graduateDTO) throws IOException {
-        System.out.println("GraduateDTO.getGraduateId(): " + graduateDTO.getGraduateId());
-        GraduateEntity graduateEntity = GraduateEntity.toSaveEntity(graduateDTO);
-        System.out.println("GraduateEntity.getGraduateId(): " + graduateEntity.getGraduateId());
-        graduateRepository.save(graduateEntity);
+        if (graduateDTO.getGraduateFile() == null || graduateDTO.getGraduateFile().isEmpty()) {
+            GraduateEntity graduateEntity = GraduateEntity.toSaveEntity(graduateDTO);
+            graduateRepository.save(graduateEntity);
+        } else {
+            GraduateEntity graduateEntity = GraduateEntity.toSaveFileEntity(graduateDTO);
+            Long savedId = graduateRepository.save(graduateEntity).getId();
+            GraduateEntity board = graduateRepository.findById(savedId).get();
+
+            for (MultipartFile graduateFile : graduateDTO.getGraduateFile()) {
+                String originalFilename = graduateFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                String savePath = "C:/springboot_img/" + storedFileName;
+
+                // 파일을 지정된 경로에 저장
+                graduateFile.transferTo(new File(savePath));
+
+                // CodingFileEntity 생성 및 저장
+                GraduateFileEntity graduateFileEntity = GraduateFileEntity.toGraduateFileEntity(board, originalFilename, storedFileName);
+                graduateFileReposiory.save(graduateFileEntity);
+            }
+        }
     }
 
 
@@ -111,6 +130,8 @@ public class GraduateService {
     public Page<GraduateDTO> searchByTitleOrContentOrHashtagOrType(String graduateId ,String title, String content, String hashtag,  Pageable pageable) {
         Page<GraduateEntity> graduateEntities = graduateRepository.findByTitleOrContentsContaining(graduateId,title, content, hashtag,  pageable);
 
+        // Lazy-loaded 컬렉션을 초기화
+        graduateEntities.forEach(notice -> notice.getGraduateFileEntityList().size());
         return graduateEntities.map(GraduateDTO::toGraduateDTO);
     }
 
