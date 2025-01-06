@@ -190,7 +190,7 @@ public class CompetitionController {
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
                                                  @RequestParam(required = false) Long parentCommentId,
                                                  @RequestParam String content,
-                                                 @RequestParam Long anonymousId,
+                                                 @RequestParam String anonymousId,
                                                  HttpServletRequest request) {
         String userId = (String) request.getAttribute("username");
         CommentDTO commentDTO = new CommentDTO();

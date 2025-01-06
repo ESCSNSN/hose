@@ -66,5 +66,5 @@ public class CommentEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    private Long anonymousId;
+    private String anonymousId;
 }

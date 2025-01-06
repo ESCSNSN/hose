@@ -22,7 +22,7 @@ public class CommentDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<CommentDTO> replies;
-    private Long anonymousId;
+    private String anonymousId;
 
     // 기본 생성자
     public CommentDTO() {}
