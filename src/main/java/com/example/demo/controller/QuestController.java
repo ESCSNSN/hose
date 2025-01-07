@@ -36,6 +36,7 @@ public class QuestController {
     // GET /api/board/quest
     @GetMapping("/quest")
     public Page<QuestDTO> paging(
+                                 HttpServletRequest request,
                                  @RequestParam(value = "page", required = false) Integer page,
                                  @RequestParam(value = "size", defaultValue = "10") Integer size,
                                  @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
@@ -48,6 +49,8 @@ public class QuestController {
         if (size == null || size <= 0) {
             size = 10;
         }
+        String userId = (String) request.getAttribute("username");
+
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "quest_created_time"));
         Page<QuestDTO> questList;
@@ -55,9 +58,9 @@ public class QuestController {
         if ((searchKeyword == null || searchKeyword.isEmpty()) &&
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())) {
-            questList = questService.paging(pageable);
+            questList = questService.paging(userId,pageable);
         } else {
-            questList = questService.searchByTitleOrContentOrHashtagOrType(searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            questList = questService.searchByTitleOrContentOrHashtagOrType(userId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
 
         return questList;
@@ -72,7 +75,7 @@ public class QuestController {
     // POST /api/board/quest/save
     @PostMapping(value = "/quest/save", consumes = {"multipart/form-data"})
     public ResponseEntity<QuestDTO> save(@ModelAttribute QuestDTO questDTO, HttpServletRequest request) throws IOException {
-        String userId = "202001685";
+        String userId = (String) request.getAttribute("username");
         questDTO.setUserID(userId);
         questService.save(questDTO);
         return ResponseEntity.ok(questDTO); // 200 OK
@@ -168,7 +171,7 @@ public class QuestController {
     public ResponseEntity<Map<String, Object>> checkScrapStatus(
             @PathVariable Long id,
             HttpServletRequest request) {
-        String userId = "202001685"; // 또는 다른 방식으로 사용자 ID 가져오기
+        String userId = (String) request.getAttribute("username");; // 또는 다른 방식으로 사용자 ID 가져오기
 
         boolean isScraped = questService.hasUserScrappedQuest(id, userId);
 
@@ -179,8 +182,11 @@ public class QuestController {
 
 
     @GetMapping("/quest/top-liked")
-    public ResponseEntity<List<QuestDTO>> getTopLikedFrees() {
-        List<QuestDTO> topLikedFrees = questService.getTopLikedFrees();
+    public ResponseEntity<List<QuestDTO>> getTopLikedFrees(HttpServletRequest request) {
+
+        String userId = (String) request.getAttribute("username");;
+        List<QuestDTO> topLikedFrees = questService.getTopLikedFrees(userId);
+
         if (topLikedFrees.isEmpty()) {
             return ResponseEntity.noContent().build(); // 204 No Content
         }
@@ -190,6 +196,7 @@ public class QuestController {
 
     @GetMapping("/quest/sort-by-likes")
     public Page<QuestDTO> sortByLikes(
+            HttpServletRequest request,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,
             @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
@@ -204,6 +211,7 @@ public class QuestController {
         if (size == null || size <= 0) {
             size = 10;
         }
+        String userId = (String) request.getAttribute("username");;
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "quest_like"));
         Page<QuestDTO> questList;
@@ -213,11 +221,11 @@ public class QuestController {
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())
         ) {
-            questList =  questService.sortByLikes(pageable);
+            questList =  questService.sortByLikes(userId,pageable);
             return questList;
         } else {
             // 검색 파라미터가 있으면 검색과 함께 좋아요 순 정렬
-            return questService.searchAndSortByLikes(searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            return questService.searchAndSortByLikes(userId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
     }
 

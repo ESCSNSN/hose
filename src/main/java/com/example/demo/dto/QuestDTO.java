@@ -41,12 +41,13 @@ public class QuestDTO {
     private int fileAttached;
     private List<String> imageUrls;
 
-    public QuestDTO(Long id, String questTitle, LocalDateTime questCreatedTime,Integer questLike,Integer scrap) {
+    public QuestDTO(Long id, String questTitle, LocalDateTime questCreatedTime,Integer questLike,Integer scrap,boolean scrapped) {
         this.id = id;
         this.questTitle = questTitle;
         this.questCreatedTime = questCreatedTime;
         this.questLike = questLike;
         this.scrap = scrap;
+        this.scrapped = scrapped;
     }
 
     public static QuestDTO toQuestDTO(QuestEntity questEntity) {

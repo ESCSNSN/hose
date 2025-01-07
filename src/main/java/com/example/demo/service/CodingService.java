@@ -107,7 +107,7 @@ public class CodingService {
         codingRepository.deleteById(id);
     }
 
-    public Page<CodingDTO> paging(Pageable pageable) {
+    public Page<CodingDTO> paging(String userId, Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -120,19 +120,27 @@ public class CodingService {
                 coding.getCodingtype(),
                 coding.getCodingtitle(),
                 coding.getCodingCreatedTime(),
-                coding.getScrap()
+                coding.getScrap(),
+                codingScrapRepository.existsByUserIdAndCodingEntityId(userId, coding.getId())
         ));
     }
 
 
     @Transactional
-    public Page<CodingDTO> searchByTitleOrContentOrHashtagOrType(String title, String content, String hashtag, String type, Pageable pageable) {
+    public Page<CodingDTO> searchByTitleOrContentOrHashtagOrType(String userId,String title, String content, String hashtag, String type, Pageable pageable) {
         Page<CodingEntity> codingEntities = codingRepository.findByTitleOrContentsContaining(title, content, hashtag, type, pageable);
 
         // Lazy-loaded 컬렉션을 초기화
         codingEntities.forEach(notice -> notice.getCodingFileEntityList().size());
 
-        return codingEntities.map(CodingDTO::toCodingDTO);
+        return codingEntities.map(coding -> new CodingDTO(
+                coding.getId(),
+                coding.getCodingtype(),
+                coding.getCodingtitle(),
+                coding.getCodingCreatedTime(),
+                coding.getScrap(),
+                codingScrapRepository.existsByUserIdAndCodingEntityId(userId, coding.getId())
+        ));
     }
 
     @Transactional
@@ -222,13 +230,14 @@ public class CodingService {
                             coding.getCodingtype(),
                             coding.getCodingtitle(),
                             coding.getCodingCreatedTime(),
-                            coding.getScrap()
+                            coding.getScrap(),
+                            codingScrapRepository.existsByUserIdAndCodingEntityId(userId, coding.getId())
                     );
                 })
                 .collect(Collectors.toList());
     }
 
-    public List<CodingDTO> getTopLikedCodings() {
+    public List<CodingDTO> getTopLikedCodings(String userId) {
         int likeThreshold = 10;
         int limit = 3;
         PageRequest pageRequest = PageRequest.of(0, limit);
@@ -241,14 +250,15 @@ public class CodingService {
                         coding.getCodingtitle(),
                         coding.getCodingcontents(),
                         coding.getCodingCreatedTime(),
-                        coding.getScrap()
+                        coding.getScrap(),
+                        codingScrapRepository.existsByUserIdAndCodingEntityId(userId, coding.getId())
                 ))
                 .collect(Collectors.toList());
     }
 
 
     @Transactional
-    public Page<CodingDTO> searchAndSortByLikes(String searchKeyword, String contentKeyword, String hashtagKeyword, String typeKeyword, Pageable pageable) {
+    public Page<CodingDTO> searchAndSortByLikes(String userId,String searchKeyword, String contentKeyword, String hashtagKeyword, String typeKeyword, Pageable pageable) {
         Page<CodingEntity> codingEntities = codingRepository.findByTitleOrContentsContaining(
                 searchKeyword, contentKeyword, hashtagKeyword, typeKeyword, pageable
         );
@@ -256,17 +266,31 @@ public class CodingService {
         // Lazy-loaded 컬렉션 초기화 (필요 시)
         codingEntities.forEach(coding -> coding.getCodingFileEntityList().size());
 
-        return codingEntities.map(CodingDTO::toCodingDTO);
+        return codingEntities.map(coding -> new CodingDTO(
+                coding.getId(),
+                coding.getCodingtype(),
+                coding.getCodingtitle(),
+                coding.getCodingCreatedTime(),
+                coding.getScrap(),
+                codingScrapRepository.existsByUserIdAndCodingEntityId(userId, coding.getId())
+        ));
     }
 
     @Transactional
-    public Page<CodingDTO> sortByLikes(Pageable pageable) {
+    public Page<CodingDTO> sortByLikes(String userId,Pageable pageable) {
         Page<CodingEntity> codingEntities = codingRepository.findAll(pageable);
 
         // Lazy-loaded 컬렉션 초기화 (필요 시)
         codingEntities.forEach(coding -> coding.getCodingFileEntityList().size());
 
-        return codingEntities.map(CodingDTO::toCodingDTO);
+        return codingEntities.map(coding -> new CodingDTO(
+                coding.getId(),
+                coding.getCodingtype(),
+                coding.getCodingtitle(),
+                coding.getCodingCreatedTime(),
+                coding.getScrap(),
+                codingScrapRepository.existsByUserIdAndCodingEntityId(userId, coding.getId())
+        ));
     }
 
 

@@ -26,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -39,7 +40,9 @@ public class CompetitionController {
 
     // GET /board/competition
     @GetMapping("/competition")
-    public Page<CompetitionDTO> paging(@RequestParam(value = "page", required = false) Integer page,
+    public Page<CompetitionDTO> paging(
+            HttpServletRequest request,
+            @RequestParam(value = "page", required = false) Integer page,
                                        @RequestParam(value = "size", defaultValue = "10") Integer size,
                                        @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
                                        @RequestParam(value = "contentKeyword", required = false) String contentKeyword,
@@ -56,14 +59,15 @@ public class CompetitionController {
         // 최신순 정렬을 위한 Pageable 설정
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "competition_created_time"));
         Page<CompetitionDTO> competitionList;
+        String userId = (String) request.getAttribute("username");
 
         // 검색 조건에 따라 검색
         if ((searchKeyword == null || searchKeyword.isEmpty()) &&
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())) {
-            competitionList = competitionService.paging(pageable);
+            competitionList = competitionService.paging(userId,pageable);
         } else {
-            competitionList = competitionService.searchByTitleOrContents(searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            competitionList = competitionService.searchByTitleOrContents(userId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
 
 
@@ -231,8 +235,19 @@ public class CompetitionController {
         return ResponseEntity.ok(comments);
     }
 
+    @GetMapping("/competition/top-liked")
+    public ResponseEntity<List<CompetitionDTO>> getTopLikedCompetition(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        List<CompetitionDTO> topLikedFrees = competitionService.getTopLikedCompetition(userId);
+        if (topLikedFrees.isEmpty()) {
+            return ResponseEntity.noContent().build(); // 204 No Content
+        }
+        return ResponseEntity.ok(topLikedFrees); // 200 OK
+    }
+
     @GetMapping("/competition/sort-by-likes")
     public Page<CompetitionDTO> sortByLikes(
+            HttpServletRequest request,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,
             @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
@@ -247,6 +262,7 @@ public class CompetitionController {
         if (size == null || size <= 0) {
             size = 10;
         }
+        String userId = (String) request.getAttribute("username");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "competition_like"));
         Page<CompetitionDTO> competitionList;
@@ -256,11 +272,11 @@ public class CompetitionController {
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())
         ) {
-            competitionList =  competitionService.sortByLikes(pageable);
+            competitionList =  competitionService.sortByLikes(userId,pageable);
             return competitionList;
         } else {
             // 검색 파라미터가 있으면 검색과 함께 좋아요 순 정렬
-            return competitionService.searchAndSortByLikes(searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            return competitionService.searchAndSortByLikes(userId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
     }
 

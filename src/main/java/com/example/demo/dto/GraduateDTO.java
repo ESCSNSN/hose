@@ -36,6 +36,7 @@ public class GraduateDTO {
 
     private int scrap;
     private int graduateLike;
+    private boolean scrapped; // 사용자가 스크랩했는지 여부 추가
 
     @JsonIgnore
     private List<MultipartFile> graduateFile;
@@ -46,13 +47,15 @@ public class GraduateDTO {
 
 
 
-    public GraduateDTO(Long id, String graduateId, String graduateTitle,LocalDateTime graduateCreatedTime,Integer graduateLike,Integer scrap) {
+
+    public GraduateDTO(Long id, String graduateId, String graduateTitle,LocalDateTime graduateCreatedTime,Integer graduateLike,Integer scrap,boolean scrapped) {
         this.id = id;
         this.graduateId = graduateId;
         this.graduateTitle = graduateTitle;
         this.graduateCreatedTime = graduateCreatedTime;
         this.graduateLike = graduateLike;
         this.scrap = scrap;
+        this.scrapped = scrapped;
 
     }
 

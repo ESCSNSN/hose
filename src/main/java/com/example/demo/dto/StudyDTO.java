@@ -42,7 +42,7 @@ public class StudyDTO {
     private int scrap;
     private int studyLike;
 
-
+    private boolean scrapped; // 사용자가 스크랩했는지 여부 추가
     private long daysLeft;
 
     @JsonIgnore
@@ -52,7 +52,7 @@ public class StudyDTO {
     private int fileAttached;
     private List<String> imageUrls;
 
-    public StudyDTO(Long id, String studyID, String studyTitle,LocalDateTime startTime,LocalDateTime deadline,Integer recruit,Integer countMember,Integer scrap,Long daysLeft) {
+    public StudyDTO(Long id, String studyID, String studyTitle,LocalDateTime startTime,LocalDateTime deadline,Integer recruit,Integer countMember,Integer scrap,Long daysLeft,boolean scrapped) {
         this.id = id;
         this.studyID = studyID;
         this.studyTitle = studyTitle;
@@ -62,6 +62,7 @@ public class StudyDTO {
         this.countMember = countMember;
         this.scrap = scrap;
         this.daysLeft = daysLeft;
+        this.scrapped = scrapped;
     }
 
     public static StudyDTO toStudyDTO(StudyEntity studyEntity) {

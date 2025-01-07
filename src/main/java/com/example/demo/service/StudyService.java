@@ -103,7 +103,7 @@ public class StudyService {
         return false;
     }
 
-    public Page<StudyDTO> paging(Pageable pageable) {
+    public Page<StudyDTO> paging(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -126,7 +126,8 @@ public class StudyService {
                     study.getRecruit(),
                     study.getCountMember(),
                     study.getScrap(),
-                    daysLeft
+                    daysLeft,
+                    studyScrapRepository.existsByUserIdAndStudyEntityId(userId, study.getId())
             );
         });
 
@@ -135,29 +136,67 @@ public class StudyService {
 
 
     @Transactional
-    public Page<StudyDTO> searchByTitleOrContentOrHashtagOrType(String studyid, String title, String content, String hashtag, Pageable pageable) {
+    public Page<StudyDTO> searchByTitleOrContentOrHashtagOrType(String userId,String studyid, String title, String content, String hashtag, Pageable pageable) {
         Page<StudyEntity> studyEntities = studyRepository.findByTitleOrContentsContaining(studyid, title, content, hashtag, pageable);
 
         // Lazy-loaded 컬렉션을 초기화
         studyEntities.forEach(study -> study.getStudyFileEntityList().size());
 
-        return studyEntities.map(StudyDTO::toStudyDTO);
+        LocalDate today = LocalDate.now();
+        // 엔티티를 DTO로 변환하면서 daysLeft 계산
+        Page<StudyDTO> studyDTOPage = studyEntities.map(study -> {
+            long daysLeft = ChronoUnit.DAYS.between(today, study.getDeadline().toLocalDate());
+
+            return new StudyDTO(
+                    study.getId(),
+                    study.getStudyId(),
+                    study.getStudytitle(),
+                    study.getStartTime(),
+                    study.getDeadline(),
+                    study.getRecruit(),
+                    study.getCountMember(),
+                    study.getScrap(),
+                    daysLeft,
+                    studyScrapRepository.existsByUserIdAndStudyEntityId(userId, study.getId())
+            );
+        });
+
+        return studyDTOPage;
     }
 
     //마감임박순
     @Transactional
-    public Page<StudyDTO> searchdeadline(String studyid, String title, String content, String hashtag, Pageable pageable) {
+    public Page<StudyDTO> searchdeadline(String userId,String studyid, String title, String content, String hashtag, Pageable pageable) {
         Page<StudyEntity> studyEntities = studyRepository.searchStudiesByFilters(studyid, title, content, hashtag, pageable);
 
         // Lazy-loaded 컬렉션을 초기화
         studyEntities.forEach(study -> study.getStudyFileEntityList().size());
 
-        return studyEntities.map(StudyDTO::toStudyDTO);
+        LocalDate today = LocalDate.now();
+        // 엔티티를 DTO로 변환하면서 daysLeft 계산
+        Page<StudyDTO> studyDTOPage = studyEntities.map(study -> {
+            long daysLeft = ChronoUnit.DAYS.between(today, study.getDeadline().toLocalDate());
+
+            return new StudyDTO(
+                    study.getId(),
+                    study.getStudyId(),
+                    study.getStudytitle(),
+                    study.getStartTime(),
+                    study.getDeadline(),
+                    study.getRecruit(),
+                    study.getCountMember(),
+                    study.getScrap(),
+                    daysLeft,
+                    studyScrapRepository.existsByUserIdAndStudyEntityId(userId, study.getId())
+            );
+        });
+
+        return studyDTOPage;
     }
 
 
     @Transactional
-    public Page<StudyDTO> sortBydeadline(Pageable pageable) {
+    public Page<StudyDTO> sortBydeadline(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -189,7 +228,8 @@ public class StudyService {
                     study.getRecruit(),
                     study.getCountMember(),
                     study.getScrap(),
-                    daysLeft
+                    daysLeft,
+                    studyScrapRepository.existsByUserIdAndStudyEntityId(userId, study.getId())
             );
         });
     }
@@ -310,7 +350,8 @@ public class StudyService {
                             study.getRecruit(),
                             study.getCountMember(),
                             study.getScrap(),
-                            daysLeft
+                            daysLeft,
+                            studyScrapRepository.existsByUserIdAndStudyEntityId(userId, study.getId())
                     );
                 })
                 .filter(Objects::nonNull)
@@ -325,7 +366,7 @@ public class StudyService {
         return new StudyResponse(studyDTOs, hasMore);
     }
 
-    public List<StudyDTO> getTopLikedFrees() {
+    public List<StudyDTO> getTopLikedFrees(String userId) {
         int likeThreshold = 10;
         int limit = 3;
         Pageable pageRequest = PageRequest.of(0, limit);
@@ -348,7 +389,8 @@ public class StudyService {
                             study.getRecruit(),
                             study.getCountMember(),
                             study.getScrap(),
-                            daysLeft
+                            daysLeft,
+                            studyScrapRepository.existsByUserIdAndStudyEntityId(userId, study.getId())
                     );
                 })
                 .collect(Collectors.toList());
