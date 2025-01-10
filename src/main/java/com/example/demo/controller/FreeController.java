@@ -221,7 +221,6 @@ public class FreeController {
     public ResponseEntity<CommentDTO> addComment(@PathVariable Long id,
                                                  @RequestParam(required = false) Long parentCommentId,
                                                  @RequestParam String content,
-                                                 @RequestParam String anonymousId,
                                                  HttpServletRequest request) {
         String userId = (String) request.getAttribute("username");
         CommentDTO commentDTO = new CommentDTO();
@@ -230,7 +229,6 @@ public class FreeController {
         commentDTO.setTargetType("free");
         commentDTO.setTargetId(id);
         commentDTO.setParentCommentId(parentCommentId);
-        commentDTO.setAnonymousId(anonymousId);
         commentService.addComment(commentDTO);
         return ResponseEntity.ok(commentDTO);
     }

@@ -5,6 +5,7 @@ import com.example.demo.dto.CommentReportDTO;
 import com.example.demo.entity.CommentEntity;
 import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.repository.CommentRepository;
+import com.example.demo.util.HashUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final CommentReportService commentReportService;
+    private final HashUtil hashUtil;
 
     /**
      * 댓글 추가 (일반 댓글 및 대댓글)
@@ -32,6 +34,8 @@ public class CommentService {
         comment.setUserId(commentDTO.getUserId());
         comment.setTargetType(commentDTO.getTargetType());
         comment.setTargetId(commentDTO.getTargetId());
+        String hashedId = hashUtil.generateHash(comment.getUserId());
+        comment.setAnonymousId(hashedId);
 
         if (commentDTO.getParentCommentId() != null) {
             CommentEntity parentComment = commentRepository.findById(commentDTO.getParentCommentId())

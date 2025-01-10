@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
@@ -18,5 +19,6 @@ public class Room {
     private String roomNumber;  // 예: "102", "111" 등
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<LectureTime> lectureTimes = new ArrayList<>();
 }

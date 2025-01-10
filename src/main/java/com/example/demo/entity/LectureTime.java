@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,5 +24,6 @@ public class LectureTime {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_number")
+    @JsonBackReference
     private Room room;
 }
