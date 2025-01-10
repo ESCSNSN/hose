@@ -110,7 +110,7 @@ public class FreeService {
         return false;
     }
 
-    public Page<FreeDTO> paging(Pageable pageable) {
+    public Page<FreeDTO> paging(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -123,19 +123,27 @@ public class FreeService {
                 free.getFreetitle(),
                 free.getFreeCreatedTime(),
                 free.getFreeLike(),
-                free.getScrap()
+                free.getScrap(),
+                freeScrapRepository.existsByUserIdAndFreeEntityId(userId, free.getId())
         ));
     }
 
 
     @Transactional
-    public Page<FreeDTO> searchByTitleOrContentOrHashtagOrType(String title, String content, String hashtag,  Pageable pageable) {
+    public Page<FreeDTO> searchByTitleOrContentOrHashtagOrType(String userId,String title, String content, String hashtag,  Pageable pageable) {
         Page<FreeEntity> freeEntities = freeRepository.findByTitleOrContentsContaining(title, content, hashtag,  pageable);
 
         // Lazy-loaded 컬렉션을 초기화
         freeEntities.forEach(notice -> notice.getFreeFileEntityList().size());
 
-        return freeEntities.map(FreeDTO::toFreeDTO);
+        return freeEntities.map(free -> new FreeDTO(
+                free.getId(),
+                free.getFreetitle(),
+                free.getFreeCreatedTime(),
+                free.getFreeLike(),
+                free.getScrap(),
+                freeScrapRepository.existsByUserIdAndFreeEntityId(userId, free.getId())
+        ));
     }
 
     @Transactional
@@ -202,8 +210,8 @@ public class FreeService {
     }
 
     @Transactional
-    public boolean hasUserScrappedFree(Long questId, String userId) {
-        return freeScrapRepository.existsByUserIdAndFreeEntityId(userId, questId);
+    public boolean hasUserScrappedFree(Long freeId, String userId) {
+        return freeScrapRepository.existsByUserIdAndFreeEntityId(userId, freeId);
     }
 
     @Transactional
@@ -225,13 +233,14 @@ public class FreeService {
                             free.getFreetitle(),
                             free.getFreeCreatedTime(),
                             free.getFreeLike(),
-                            free.getScrap()
+                            free.getScrap(),
+                            freeScrapRepository.existsByUserIdAndFreeEntityId(userId, free.getId())
                     );
                 })
                 .collect(Collectors.toList());
     }
 
-    public List<FreeDTO> getTopLikedFrees() {
+    public List<FreeDTO> getTopLikedFrees(String userId) {
         int likeThreshold = 10;
         int limit = 3;
         PageRequest pageRequest = PageRequest.of(0, limit);
@@ -244,26 +253,34 @@ public class FreeService {
                         free.getFreetitle(),
                         free.getFreeCreatedTime(),
                         free.getFreeLike(),
-                        free.getScrap()
+                        free.getScrap(),
+                        freeScrapRepository.existsByUserIdAndFreeEntityId(userId, free.getId())
                 ))
                 .collect(Collectors.toList());
     }
 
 
     @Transactional
-    public Page<FreeDTO> searchAndSortByLikes(String searchKeyword, String contentKeyword, String hashtagKeyword, Pageable pageable) {
+    public Page<FreeDTO> searchAndSortByLikes(String userId,String searchKeyword, String contentKeyword, String hashtagKeyword, Pageable pageable) {
         Page<FreeEntity> freeEntities = freeRepository.findByTitleOrContentsContaining(
                 searchKeyword, contentKeyword, hashtagKeyword, pageable);
 
         // Lazy-loaded 컬렉션 초기화 (필요 시)
         freeEntities.forEach(free -> free.getFreeFileEntityList().size());
 
-        return freeEntities.map(FreeDTO::toFreeDTO);
+        return freeEntities.map(free -> new FreeDTO(
+                free.getId(),
+                free.getFreetitle(),
+                free.getFreeCreatedTime(),
+                free.getFreeLike(),
+                free.getScrap(),
+                freeScrapRepository.existsByUserIdAndFreeEntityId(userId, free.getId())
+        ));
     }
 
 
     @Transactional
-    public Page<FreeDTO> sortByLikes(Pageable pageable) {
+    public Page<FreeDTO> sortByLikes(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -276,13 +293,23 @@ public class FreeService {
                 free.getFreetitle(),
                 free.getFreeCreatedTime(),
                 free.getFreeLike(),
-                free.getScrap()
+                free.getScrap(),
+                freeScrapRepository.existsByUserIdAndFreeEntityId(userId, free.getId())
         ));
     }
 
     @Transactional
     public List<MainFreeDTO> getTop3FreePosts() {
         PageRequest pageable = PageRequest.of(0, 3);
+        List<FreeEntity> freePosts = freeRepository.findTop3FreePostsWithFiles(pageable);
+        return freePosts.stream()
+                .map(MainFreeDTO::toMainFreeDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<MainFreeDTO> getTop2FreePosts() {
+        PageRequest pageable = PageRequest.of(0, 2);
         List<FreeEntity> freePosts = freeRepository.findTop3FreePostsWithFiles(pageable);
         return freePosts.stream()
                 .map(MainFreeDTO::toMainFreeDTO)

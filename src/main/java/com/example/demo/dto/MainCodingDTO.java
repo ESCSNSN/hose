@@ -17,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class MainCodingDTO {
     private Long id;
+    @JsonIgnore
     private String userID;
     private String boardID;
     private String codingTitle;

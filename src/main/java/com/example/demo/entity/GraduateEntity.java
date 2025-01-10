@@ -47,6 +47,12 @@ public class GraduateEntity extends GraduateBaseEntity {
     @Column(name = "graudate_hashtag")
     private String graduatehashtag;
 
+    @Column
+    private int fileAttached; // 1 or 0
+
+    @OneToMany(mappedBy = "graduateEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<GraduateFileEntity> graduateFileEntityList = new ArrayList<>();
+
     @OneToMany(mappedBy = "graduateEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<GraduateLikeEntity> likes = new ArrayList<>();
 
@@ -62,6 +68,7 @@ public class GraduateEntity extends GraduateBaseEntity {
        graduateEntity.setGraduatetitle(graduateDTO.getGraduateTitle());
        graduateEntity.setGraduatecontents(graduateDTO.getGraduateContents());
        graduateEntity.setGraduatehashtag(graduateDTO.getGraduateHashtag());
+       graduateEntity.setFileAttached(0);
 
         return graduateEntity;
     }
@@ -76,6 +83,18 @@ public class GraduateEntity extends GraduateBaseEntity {
         graduateEntity.setGraduatecontents(graduateDTO.getGraduateContents());
         graduateEntity.setGraduatehashtag(graduateDTO.getGraduateHashtag());
 
+        return graduateEntity;
+    }
+
+
+    public static GraduateEntity toSaveFileEntity(GraduateDTO graduateDTO) {
+        GraduateEntity graduateEntity = new GraduateEntity();
+        graduateEntity.setUserId(graduateDTO.getUserID());
+        graduateEntity.setGraduateId(graduateDTO.getGraduateId());
+        graduateEntity.setGraduatetitle(graduateDTO.getGraduateTitle());
+        graduateEntity.setGraduatecontents(graduateDTO.getGraduateContents());
+        graduateEntity.setGraduatehashtag(graduateDTO.getGraduateHashtag());
+        graduateEntity.setFileAttached(1);
         return graduateEntity;
     }
 

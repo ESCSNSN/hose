@@ -32,7 +32,9 @@ public class FreeController {
 
     // GET /api/board/free
     @GetMapping("/free")
-    public Page<FreeDTO> paging(@RequestParam(value = "page", required = false) Integer page,
+    public Page<FreeDTO> paging(
+            HttpServletRequest request,
+                                @RequestParam(value = "page", required = false) Integer page,
                                 @RequestParam(value = "size", defaultValue = "10") Integer size,
                                 @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
                                 @RequestParam(value = "contentKeyword", required = false) String contentKeyword,
@@ -44,6 +46,7 @@ public class FreeController {
         if (size == null || size <= 0) {
             size = 10;
         }
+        String userId = (String) request.getAttribute("username");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "free_created_time"));
         Page<FreeDTO> freeList;
@@ -51,9 +54,9 @@ public class FreeController {
         if ((searchKeyword == null || searchKeyword.isEmpty()) &&
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())) {
-            freeList = freeService.paging(pageable);
+            freeList = freeService.paging(userId,pageable);
         } else {
-            freeList = freeService.searchByTitleOrContentOrHashtagOrType(searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            freeList = freeService.searchByTitleOrContentOrHashtagOrType(userId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
 
         return freeList;
@@ -174,8 +177,9 @@ public class FreeController {
     }
 
     @GetMapping("/free/top-liked")
-    public ResponseEntity<List<FreeDTO>> getTopLikedFrees() {
-        List<FreeDTO> topLikedFrees = freeService.getTopLikedFrees();
+    public ResponseEntity<List<FreeDTO>> getTopLikedFrees(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        List<FreeDTO> topLikedFrees = freeService.getTopLikedFrees(userId);
         if (topLikedFrees.isEmpty()) {
             return ResponseEntity.noContent().build(); // 204 No Content
         }
@@ -185,6 +189,7 @@ public class FreeController {
 
     @GetMapping("/free/sort-by-likes")
     public Page<FreeDTO> sortByLikes(
+            HttpServletRequest request,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,
             @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
@@ -199,6 +204,7 @@ public class FreeController {
         if (size == null || size <= 0) {
             size = 10;
         }
+        String userId = (String) request.getAttribute("username");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "free_like"));
         Page<FreeDTO> freeList;
@@ -208,11 +214,11 @@ public class FreeController {
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())
                 ) {
-            freeList =  freeService.sortByLikes(pageable);
+            freeList =  freeService.sortByLikes(userId,pageable);
             return freeList;
         } else {
             // 검색 파라미터가 있으면 검색과 함께 좋아요 순 정렬
-            return freeService.searchAndSortByLikes(searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            return freeService.searchAndSortByLikes(userId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
     }
 

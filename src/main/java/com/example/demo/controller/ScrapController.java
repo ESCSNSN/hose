@@ -143,7 +143,7 @@ public class ScrapController {
             @RequestParam(value = "GraduateId", required = false) String GraduateId,
             @RequestParam(value = "lastId", required = false) Long lastId,
             @RequestParam(value = "limit", defaultValue = "10") int limit) {
-        String userId = "202001685"; // 사용자 ID 가져오기
+        String userId = (String) request.getAttribute("username"); // 사용자 ID 가져오기
 
 
         List<GraduateDTO> scrappedGraduate = graduateService.getScrappedGraduate(userId, lastId,GraduateId ,limit);

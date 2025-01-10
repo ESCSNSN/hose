@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class CodingDTO {
     private Long id;
+    @JsonIgnore
     private String userID;
     private String boardID;
     private String codingTitle;
@@ -38,13 +39,15 @@ public class CodingDTO {
     private List<String> storedFileName;
     private int fileAttached;
     private List<String> imageUrls;
+    private boolean scrapped; // 사용자가 스크랩했는지 여부 추가
 
-    public CodingDTO(Long id, String codingType, String codingTitle, LocalDateTime codingCreatedTime,Integer scrap) {
+    public CodingDTO(Long id, String codingType, String codingTitle, LocalDateTime codingCreatedTime,Integer scrap,boolean scrapped) {
         this.id = id;
         this.codingType = codingType;
         this.codingTitle = codingTitle;
         this.codingCreatedTime = codingCreatedTime;
         this.scrap = scrap;
+        this.scrapped = scrapped;
     }
 
     public static CodingDTO toCodingDTO(CodingEntity codingEntity) {

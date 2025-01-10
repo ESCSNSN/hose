@@ -127,7 +127,7 @@ public class CompetitionService {
         competitionRepository.deleteById(id);
     }
 
-    public Page<CompetitionDTO> paging(Pageable pageable) {
+    public Page<CompetitionDTO> paging(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 5; // 한 페이지에 보여줄 글 갯수
 
@@ -140,19 +140,29 @@ public class CompetitionService {
                 competition.getCompetitiontitle(),
                 competition.getCompetitionCreatedTime(),
                 competition.getCompetitionLike(),
-                competition.getScrap()
+                competition.getScrap(),
+                competitionScrapRepository.existsByUserIdAndCompetitionEntityId(userId, competition.getId())
+
         ));
     }
 
 
     @Transactional
-    public Page<CompetitionDTO> searchByTitleOrContents(String title, String content, String hashtag, Pageable pageable) {
+    public Page<CompetitionDTO> searchByTitleOrContents(String userId,String title, String content, String hashtag, Pageable pageable) {
         Page<CompetitionEntity> competitionEntities = competitionRepository.findByTitleOrContentsContaining(title, content,hashtag, pageable);
 
         // Lazy-loaded 컬렉션을 초기화
         competitionEntities.forEach(notice -> notice.getCompetitionFileEntityList().size());
 
-        return competitionEntities.map(CompetitionDTO::toCompetitionDTO);
+        return competitionEntities.map(competition -> new CompetitionDTO(
+                competition.getId(),
+                competition.getCompetitiontitle(),
+                competition.getCompetitionCreatedTime(),
+                competition.getCompetitionLike(),
+                competition.getScrap(),
+                competitionScrapRepository.existsByUserIdAndCompetitionEntityId(userId, competition.getId())
+
+        ));
     }
 
     @Transactional
@@ -241,26 +251,53 @@ public class CompetitionService {
                             competition.getCompetitiontitle(),
                             competition.getCompetitionCreatedTime(),
                             competition.getCompetitionLike(),
-                            competition.getScrap()
+                            competition.getScrap(),
+                            competitionScrapRepository.existsByUserIdAndCompetitionEntityId(userId, competition.getId())
                     );
                 })
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public Page<CompetitionDTO> searchAndSortByLikes(String searchKeyword, String contentKeyword, String hashtagKeyword, Pageable pageable) {
+    public Page<CompetitionDTO> searchAndSortByLikes(String userId,String searchKeyword, String contentKeyword, String hashtagKeyword, Pageable pageable) {
         Page<CompetitionEntity> competitionEntities = competitionRepository.findByTitleOrContentsContaining(
                 searchKeyword, contentKeyword, hashtagKeyword, pageable);
 
         // Lazy-loaded 컬렉션 초기화 (필요 시)
         competitionEntities.forEach(free -> free.getCompetitionFileEntityList().size());
 
-        return competitionEntities.map(CompetitionDTO::toCompetitionDTO);
+        return competitionEntities.map(competition -> new CompetitionDTO(
+                competition.getId(),
+                competition.getCompetitiontitle(),
+                competition.getCompetitionCreatedTime(),
+                competition.getCompetitionLike(),
+                competition.getScrap(),
+                competitionScrapRepository.existsByUserIdAndCompetitionEntityId(userId, competition.getId())
+        ));
+    }
+
+    public List<CompetitionDTO> getTopLikedCompetition(String userId) {
+        int likeThreshold = 10;
+        int limit = 3;
+        PageRequest pageRequest = PageRequest.of(0, limit);
+
+        List<CompetitionEntity> topLikedEntities = competitionRepository.findByCompetitionLikeGreaterThanEqualOrderByCompetitionCreatedTimeDesc(likeThreshold, pageRequest);
+
+        return topLikedEntities.stream()
+                .map(competition -> new CompetitionDTO(
+                        competition.getId(),
+                        competition.getCompetitiontitle(),
+                        competition.getCompetitionCreatedTime(),
+                        competition.getCompetitionLike(),
+                        competition.getScrap(),
+                        competitionScrapRepository.existsByUserIdAndCompetitionEntityId(userId, competition.getId())
+                ))
+                .collect(Collectors.toList());
     }
 
 
     @Transactional
-    public Page<CompetitionDTO> sortByLikes(Pageable pageable) {
+    public Page<CompetitionDTO> sortByLikes(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -273,7 +310,8 @@ public class CompetitionService {
                 competition.getCompetitiontitle(),
                 competition.getCompetitionCreatedTime(),
                 competition.getCompetitionLike(),
-                competition.getScrap()
+                competition.getScrap(),
+                competitionScrapRepository.existsByUserIdAndCompetitionEntityId(userId, competition.getId())
         ));
     }
 

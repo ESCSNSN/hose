@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.entity.CompetitionEntity;
+import com.example.demo.entity.QuestEntity;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +26,8 @@ public interface CompetitionRepository extends JpaRepository<CompetitionEntity, 
             @Param("content") String content,
             @Param("hashtag") String hashtag,
             Pageable pageable);
+
+    List<CompetitionEntity> findByCompetitionLikeGreaterThanEqualOrderByCompetitionCreatedTimeDesc(int competitionLike, Pageable pageable);
 
     @Query("SELECT c FROM CompetitionEntity c LEFT JOIN FETCH c.competitionFileEntityList ORDER BY c.competitionCreatedTime DESC")
     List<CompetitionEntity> findTop3CompetitionsWithFiles(PageRequest pageable);

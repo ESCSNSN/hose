@@ -24,14 +24,14 @@ public class GraduateHomeController {
     private final GraduateService graduateService;
 
     @GetMapping("/main/quest")
-    public ResponseEntity<List<MainQuestDTO>> getTop3Quests() {
-        List<MainQuestDTO> top3Quests = questService.getTop3Quests();
+    public ResponseEntity<List<MainQuestDTO>> getTop2Quests() {
+        List<MainQuestDTO> top3Quests = questService.getTop2Quests();
         return ResponseEntity.ok(top3Quests);
     }
 
     @GetMapping("/main/free")
-    public ResponseEntity<List<MainFreeDTO>> getTop3FreePosts() {
-        List<MainFreeDTO> top3FreePosts = freeService.getTop3FreePosts();
+    public ResponseEntity<List<MainFreeDTO>> getTop2FreePosts() {
+        List<MainFreeDTO> top3FreePosts = freeService.getTop2FreePosts();
         return ResponseEntity.ok(top3FreePosts);
     }
 

@@ -37,7 +37,9 @@ public class CodingController {
 
     // GET /api/board/coding
     @GetMapping("/coding")
-    public Page<CodingDTO> paging(@RequestParam(value = "page", required = false) Integer page,
+    public Page<CodingDTO> paging(
+            HttpServletRequest request,
+                                  @RequestParam(value = "page", required = false) Integer page,
                                   @RequestParam(value = "size", defaultValue = "10") Integer size,
                                   @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
                                   @RequestParam(value = "contentKeyword", required = false) String contentKeyword,
@@ -50,7 +52,7 @@ public class CodingController {
         if (size == null || size <= 0) {
             size = 10;
         }
-
+        String userId = (String) request.getAttribute("username");
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "coding_created_time"));
         Page<CodingDTO> codingList;
 
@@ -58,9 +60,9 @@ public class CodingController {
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty()) &&
                 (typeKeyword == null || typeKeyword.isEmpty())) {
-            codingList = codingService.paging(pageable);
+            codingList = codingService.paging(userId,pageable);
         } else {
-            codingList = codingService.searchByTitleOrContentOrHashtagOrType(searchKeyword, contentKeyword, hashtagKeyword, typeKeyword, pageable);
+            codingList = codingService.searchByTitleOrContentOrHashtagOrType(userId,searchKeyword, contentKeyword, hashtagKeyword, typeKeyword, pageable);
         }
 
         return codingList;
@@ -182,8 +184,9 @@ public class CodingController {
     }
 
     @GetMapping("/coding/top-liked")
-    public ResponseEntity<List<CodingDTO>> getTopLikedCodings() {
-        List<CodingDTO> topLikedCodings = codingService.getTopLikedCodings();
+    public ResponseEntity<List<CodingDTO>> getTopLikedCodings(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        List<CodingDTO> topLikedCodings = codingService.getTopLikedCodings(userId);
         if (topLikedCodings.isEmpty()) {
             return ResponseEntity.noContent().build(); // 204 No Content
         }
@@ -193,6 +196,7 @@ public class CodingController {
 
     @GetMapping("/coding/sort-by-likes")
     public Page<CodingDTO> sortByLikes(
+            HttpServletRequest request,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,
             @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
@@ -207,6 +211,7 @@ public class CodingController {
         if (size == null || size <= 0) {
             size = 10;
         }
+        String userId = (String) request.getAttribute("username");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "codingLike"));
 
@@ -215,10 +220,10 @@ public class CodingController {
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty()) &&
                 (typeKeyword == null || typeKeyword.isEmpty())) {
-            return codingService.sortByLikes(pageable);
+            return codingService.sortByLikes(userId,pageable);
         } else {
             // 검색 파라미터가 있으면 검색과 함께 좋아요 순 정렬
-            return codingService.searchAndSortByLikes(searchKeyword, contentKeyword, hashtagKeyword, typeKeyword, pageable);
+            return codingService.searchAndSortByLikes(userId,searchKeyword, contentKeyword, hashtagKeyword, typeKeyword, pageable);
         }
     }
     // POST /api/board/coding/{id}/comments/add

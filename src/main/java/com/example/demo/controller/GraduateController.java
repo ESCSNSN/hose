@@ -5,6 +5,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.CommentDTO;
 import com.example.demo.dto.FreeDTO;
 import com.example.demo.dto.GraduateDTO;
+import com.example.demo.dto.QuestDTO;
 import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.service.FreeService;
 import com.example.demo.service.GraduateService;
@@ -35,7 +36,8 @@ public class GraduateController {
 
     // GET /api/board/free
     @GetMapping("/graduate")
-    public Page<GraduateDTO> paging(@RequestParam(value = "page", required = false) Integer page,
+    public Page<GraduateDTO> paging(HttpServletRequest request,
+            @RequestParam(value = "page", required = false) Integer page,
                                 @RequestParam(value = "size", defaultValue = "10") Integer size,
                                 @RequestParam(value = "graduateId", required = false) String graduateId,
                                 @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
@@ -51,15 +53,16 @@ public class GraduateController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "graduate_created_time"));
         Page<GraduateDTO> graduateList;
+        String userId = (String) request.getAttribute("username");
 
         if (
                 (graduateId == null || graduateId.isEmpty()) &&
                 (searchKeyword == null || searchKeyword.isEmpty()) &&
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())) {
-            graduateList = graduateService.paging(pageable);
+            graduateList = graduateService.paging(userId,pageable);
         } else {
-            graduateList = graduateService.searchByTitleOrContentOrHashtagOrType(graduateId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            graduateList = graduateService.searchByTitleOrContentOrHashtagOrType(userId,graduateId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
 
         return graduateList;
@@ -72,10 +75,11 @@ public class GraduateController {
     }
 
     // POST /api/board/free/save
-    @PostMapping(value = "/graduate/save")
-    public ResponseEntity<GraduateDTO> save(@RequestBody GraduateDTO graduateDTO, HttpServletRequest request) throws IOException {
-        String userId = "202001685";
-        graduateDTO.setUserID(userId); // Setter 메서드 이름 수정
+    // POST /api/board/quest/save
+    @PostMapping(value = "/graduate/save", consumes = {"multipart/form-data"})
+    public ResponseEntity<GraduateDTO> save(@ModelAttribute GraduateDTO graduateDTO, HttpServletRequest request) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        graduateDTO.setUserID(userId);
         graduateService.save(graduateDTO);
         return ResponseEntity.ok(graduateDTO); // 200 OK
     }
@@ -84,8 +88,9 @@ public class GraduateController {
 
     // GET /api/board/free/{id}
     @GetMapping("/graduate/{id}")
-    public GraduateDTO findById(@PathVariable Long id) {
-        return graduateService.findByID(id);
+    public ResponseEntity<GraduateDTO> findById(@PathVariable Long id) {
+        GraduateDTO dto = graduateService.findByID(id);
+        return ResponseEntity.ok(dto);
     }
 
     // GET /api/board/free/update/{id} (업데이트 폼 요청)
@@ -93,7 +98,7 @@ public class GraduateController {
     public ResponseEntity<GraduateDTO> updateForm(
             @PathVariable Long id,
             HttpServletRequest request) {
-        String userId = "202001685";
+        String userId = (String) request.getAttribute("username");
         GraduateDTO graduateDTO = graduateService.findByID(id, userId);
         return ResponseEntity.ok(graduateDTO);
     }
@@ -180,8 +185,9 @@ public class GraduateController {
     }
 
     @GetMapping("/graduate/top-liked")
-    public ResponseEntity<List<GraduateDTO>> getTopLikedFrees() {
-        List<GraduateDTO> topLikedFrees = graduateService.getTopLikedFrees();
+    public ResponseEntity<List<GraduateDTO>> getTopLikedFrees(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        List<GraduateDTO> topLikedFrees = graduateService.getTopLikedFrees(userId);
         if (topLikedFrees.isEmpty()) {
             return ResponseEntity.noContent().build(); // 204 No Content
         }
@@ -191,6 +197,7 @@ public class GraduateController {
 
     @GetMapping("/graduate/sort-by-likes")
     public Page<GraduateDTO> sortByLikes(
+            HttpServletRequest request,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,
             @RequestParam(value = "graduateId", required = false) String graduateId,
@@ -206,7 +213,7 @@ public class GraduateController {
         if (size == null || size <= 0) {
             size = 10;
         }
-
+        String userId = (String) request.getAttribute("username");
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "graduate_like"));
         Page<GraduateDTO> graduateList;
 
@@ -217,11 +224,11 @@ public class GraduateController {
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())
         ) {
-            graduateList =  graduateService.sortByLikes(pageable);
+            graduateList =  graduateService.sortByLikes(userId,pageable);
             return graduateList;
         } else {
             // 검색 파라미터가 있으면 검색과 함께 좋아요 순 정렬
-            return graduateService.searchAndSortByLikes(graduateId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            return graduateService.searchAndSortByLikes(userId,graduateId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
     }
 

@@ -5,6 +5,7 @@ import com.example.demo.dto.GraduateDTO;
 import com.example.demo.dto.MainGraduateDTO;
 import com.example.demo.dto.QuestDTO;
 import com.example.demo.entity.*;
+import com.example.demo.repository.GraduateFileReposiory;
 import com.example.demo.repository.GraduateLikeRepository;
 import com.example.demo.repository.GraduateRepository;
 import com.example.demo.repository.GraduateScrapRepository;
@@ -33,12 +34,30 @@ public class GraduateService {
     private final GraduateRepository graduateRepository;
     private final GraduateLikeRepository graduateLikeRepository;
     private final GraduateScrapRepository graduateScrapRepository;
+    private final GraduateFileReposiory graduateFileReposiory;
 
     public void save(GraduateDTO graduateDTO) throws IOException {
-        System.out.println("GraduateDTO.getGraduateId(): " + graduateDTO.getGraduateId());
-        GraduateEntity graduateEntity = GraduateEntity.toSaveEntity(graduateDTO);
-        System.out.println("GraduateEntity.getGraduateId(): " + graduateEntity.getGraduateId());
-        graduateRepository.save(graduateEntity);
+        if (graduateDTO.getGraduateFile() == null || graduateDTO.getGraduateFile().isEmpty()) {
+            GraduateEntity graduateEntity = GraduateEntity.toSaveEntity(graduateDTO);
+            graduateRepository.save(graduateEntity);
+        } else {
+            GraduateEntity graduateEntity = GraduateEntity.toSaveFileEntity(graduateDTO);
+            Long savedId = graduateRepository.save(graduateEntity).getId();
+            GraduateEntity board = graduateRepository.findById(savedId).get();
+
+            for (MultipartFile graduateFile : graduateDTO.getGraduateFile()) {
+                String originalFilename = graduateFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                String savePath = "C:/springboot_img/" + storedFileName;
+
+                // 파일을 지정된 경로에 저장
+                graduateFile.transferTo(new File(savePath));
+
+                // CodingFileEntity 생성 및 저장
+                GraduateFileEntity graduateFileEntity = GraduateFileEntity.toGraduateFileEntity(board, originalFilename, storedFileName);
+                graduateFileReposiory.save(graduateFileEntity);
+            }
+        }
     }
 
 
@@ -88,7 +107,7 @@ public class GraduateService {
         return false;
     }
 
-    public Page<GraduateDTO> paging(Pageable pageable) {
+    public Page<GraduateDTO> paging(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -102,16 +121,27 @@ public class GraduateService {
                 graduate.getGraduatetitle(),
                 graduate.getGraduateCreatedTime(),
                 graduate.getGraduateLike(),
-                graduate.getScrap()
+                graduate.getScrap(),
+                graduateScrapRepository.existsByUserIdAndGraduateEntityId(userId, graduate.getId())
         ));
     }
 
 
     @Transactional
-    public Page<GraduateDTO> searchByTitleOrContentOrHashtagOrType(String graduateId ,String title, String content, String hashtag,  Pageable pageable) {
+    public Page<GraduateDTO> searchByTitleOrContentOrHashtagOrType(String userId,String graduateId ,String title, String content, String hashtag,  Pageable pageable) {
         Page<GraduateEntity> graduateEntities = graduateRepository.findByTitleOrContentsContaining(graduateId,title, content, hashtag,  pageable);
 
-        return graduateEntities.map(GraduateDTO::toGraduateDTO);
+        // Lazy-loaded 컬렉션을 초기화
+        graduateEntities.forEach(notice -> notice.getGraduateFileEntityList().size());
+        return graduateEntities.map(graduate -> new GraduateDTO(
+                graduate.getId(),
+                graduate.getGraduateId(),
+                graduate.getGraduatetitle(),
+                graduate.getGraduateCreatedTime(),
+                graduate.getGraduateLike(),
+                graduate.getScrap(),
+                graduateScrapRepository.existsByUserIdAndGraduateEntityId(userId, graduate.getId())
+        ));
     }
 
     @Transactional
@@ -202,14 +232,15 @@ public class GraduateService {
                             graduate.getGraduatetitle(),
                             graduate.getGraduateCreatedTime(),
                             graduate.getGraduateLike(),
-                            graduate.getScrap()
+                            graduate.getScrap(),
+                            graduateScrapRepository.existsByUserIdAndGraduateEntityId(userId, graduate.getId())
                             // 필요한 추가 필드
                     );
                 })
                 .collect(Collectors.toList());
     }
 
-    public List<GraduateDTO> getTopLikedFrees() {
+    public List<GraduateDTO> getTopLikedFrees(String userId) {
         int likeThreshold = 10;
         int limit = 3;
         PageRequest pageRequest = PageRequest.of(0, limit);
@@ -223,25 +254,32 @@ public class GraduateService {
                         graduate.getGraduatetitle(),
                         graduate.getGraduateCreatedTime(),
                         graduate.getGraduateLike(),
-                        graduate.getScrap()
+                        graduate.getScrap(),
+                        graduateScrapRepository.existsByUserIdAndGraduateEntityId(userId, graduate.getId())
                 ))
                 .collect(Collectors.toList());
     }
 
 
     @Transactional
-    public Page<GraduateDTO> searchAndSortByLikes(String graduateId,String searchKeyword, String contentKeyword, String hashtagKeyword, Pageable pageable) {
+    public Page<GraduateDTO> searchAndSortByLikes(String userId,String graduateId,String searchKeyword, String contentKeyword, String hashtagKeyword, Pageable pageable) {
         Page<GraduateEntity> graduateEntities = graduateRepository.findByTitleOrContentsContaining(
                 graduateId,searchKeyword, contentKeyword, hashtagKeyword, pageable);
 
-
-
-        return graduateEntities.map(GraduateDTO::toGraduateDTO);
+        return graduateEntities.map(graduate -> new GraduateDTO(
+                graduate.getId(),
+                graduate.getGraduateId(),
+                graduate.getGraduatetitle(),
+                graduate.getGraduateCreatedTime(),
+                graduate.getGraduateLike(),
+                graduate.getScrap(),
+                graduateScrapRepository.existsByUserIdAndGraduateEntityId(userId, graduate.getId())
+        ));
     }
 
 
     @Transactional
-    public Page<GraduateDTO> sortByLikes(Pageable pageable) {
+    public Page<GraduateDTO> sortByLikes(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -255,7 +293,8 @@ public class GraduateService {
                 graduate.getGraduatetitle(),
                 graduate.getGraduateCreatedTime(),
                 graduate.getGraduateLike(),
-                graduate.getScrap()
+                graduate.getScrap(),
+                graduateScrapRepository.existsByUserIdAndGraduateEntityId(userId, graduate.getId())
         ));
     }
 

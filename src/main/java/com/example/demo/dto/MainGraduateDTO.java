@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import com.example.demo.entity.GraduateEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 public class MainGraduateDTO {
 
         private Long id;
+        @JsonIgnore
         private String userID;
         private String boardID;
         private String graduateId;

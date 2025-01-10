@@ -109,7 +109,7 @@ public class QuestService {
         return false;
     }
 
-    public Page<QuestDTO> paging(Pageable pageable) {
+    public Page<QuestDTO> paging(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -122,19 +122,27 @@ public class QuestService {
                 quest.getQuesttitle(),
                 quest.getQuestCreatedTime(),
                 quest.getQuestLike(),
-                quest.getScrap()
+                quest.getScrap(),
+                questScrapRepository.existsByUserIdAndQuestEntityId(userId, quest.getId())
         ));
     }
 
 
     @Transactional
-    public Page<QuestDTO> searchByTitleOrContentOrHashtagOrType(String title, String content, String hashtag,  Pageable pageable) {
+    public Page<QuestDTO> searchByTitleOrContentOrHashtagOrType(String userId,String title, String content, String hashtag,  Pageable pageable) {
         Page<QuestEntity> questEntities = questRepository.findByTitleOrContentsContaining(title, content, hashtag,  pageable);
 
         // Lazy-loaded 컬렉션을 초기화
         questEntities.forEach(notice -> notice.getQuestFileEntityList().size());
 
-        return questEntities.map(QuestDTO::toQuestDTO);
+        return questEntities.map(quest -> new QuestDTO(
+                quest.getId(),
+                quest.getQuesttitle(),
+                quest.getQuestCreatedTime(),
+                quest.getQuestLike(),
+                quest.getScrap(),
+                questScrapRepository.existsByUserIdAndQuestEntityId(userId, quest.getId())
+        ));
     }
 
     @Transactional
@@ -224,13 +232,13 @@ public class QuestService {
                             quest.getQuesttitle(),
                             quest.getQuestCreatedTime(),
                             quest.getQuestLike(),
-                            quest.getScrap()
-                            // 필요한 추가 필드
+                            quest.getScrap(),
+                            questScrapRepository.existsByUserIdAndQuestEntityId(userId, quest.getId())
                     );
                 })
                 .collect(Collectors.toList());
     }
-    public List<QuestDTO> getTopLikedFrees() {
+    public List<QuestDTO> getTopLikedFrees(String userId) {
         int likeThreshold = 10;
         int limit = 3;
         PageRequest pageRequest = PageRequest.of(0, limit);
@@ -243,26 +251,34 @@ public class QuestService {
                         quest.getQuesttitle(),
                         quest.getQuestCreatedTime(),
                         quest.getQuestLike(),
-                        quest.getScrap()
+                        quest.getScrap(),
+                        questScrapRepository.existsByUserIdAndQuestEntityId(userId, quest.getId())
                 ))
                 .collect(Collectors.toList());
     }
 
 
     @Transactional
-    public Page<QuestDTO> searchAndSortByLikes(String searchKeyword, String contentKeyword, String hashtagKeyword, Pageable pageable) {
+    public Page<QuestDTO> searchAndSortByLikes(String userId,String searchKeyword, String contentKeyword, String hashtagKeyword, Pageable pageable) {
         Page<QuestEntity> questEntities = questRepository.findByTitleOrContentsContaining(
                 searchKeyword, contentKeyword, hashtagKeyword, pageable);
 
         // Lazy-loaded 컬렉션 초기화 (필요 시)
         questEntities.forEach(quest -> quest.getQuestFileEntityList().size());
 
-        return questEntities.map(QuestDTO::toQuestDTO);
+        return questEntities.map(quest -> new QuestDTO(
+                quest.getId(),
+                quest.getQuesttitle(),
+                quest.getQuestCreatedTime(),
+                quest.getQuestLike(),
+                quest.getScrap(),
+                questScrapRepository.existsByUserIdAndQuestEntityId(userId, quest.getId())
+        ));
     }
 
 
     @Transactional
-    public Page<QuestDTO> sortByLikes(Pageable pageable) {
+    public Page<QuestDTO> sortByLikes(String userId,Pageable pageable) {
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
         int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
 
@@ -275,13 +291,23 @@ public class QuestService {
                 quest.getQuesttitle(),
                 quest.getQuestCreatedTime(),
                 quest.getQuestLike(),
-                quest.getScrap()
+                quest.getScrap(),
+                questScrapRepository.existsByUserIdAndQuestEntityId(userId, quest.getId())
         ));
     }
 
     @Transactional
     public List<MainQuestDTO> getTop3Quests() {
         PageRequest pageable = PageRequest.of(0, 3);
+        List<QuestEntity> quests = questRepository.findTop3QuestsWithFiles(pageable);
+        return quests.stream()
+                .map(MainQuestDTO::toMainQuestDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<MainQuestDTO> getTop2Quests() {
+        PageRequest pageable = PageRequest.of(0, 2);
         List<QuestEntity> quests = questRepository.findTop3QuestsWithFiles(pageable);
         return quests.stream()
                 .map(MainQuestDTO::toMainQuestDTO)

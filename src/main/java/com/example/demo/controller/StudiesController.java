@@ -36,7 +36,9 @@ public class StudiesController {
 
     // GET /api/board/coding
     @GetMapping("/studies")
-    public Page<StudyDTO> paging(@RequestParam(value = "page", required = false) Integer page,
+    public Page<StudyDTO> paging(
+            HttpServletRequest request,
+                                 @RequestParam(value = "page", required = false) Integer page,
                                  @RequestParam(value = "size", defaultValue = "10") Integer size,
                                  @RequestParam(value = "studyid", required = false) String studyid,
                                  @RequestParam(value = "searchKeyword", required = false) String searchKeyword,
@@ -49,6 +51,7 @@ public class StudiesController {
         if (size == null || size <= 0) {
             size = 10;
         }
+        String userId = (String) request.getAttribute("username");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Page<StudyDTO> studyList;
@@ -57,9 +60,9 @@ public class StudiesController {
                 (searchKeyword == null || searchKeyword.isEmpty()) &&
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())) {
-            studyList = studyService.paging(pageable);
+            studyList = studyService.paging(userId,pageable);
         } else {
-            studyList = studyService.searchByTitleOrContentOrHashtagOrType(studyid,searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            studyList = studyService.searchByTitleOrContentOrHashtagOrType(userId,studyid,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
 
         return studyList;
@@ -110,7 +113,7 @@ public class StudiesController {
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
             HttpServletRequest request) {
-        String userId = "hose";
+        String userId = (String) request.getAttribute("username");
         boolean isDeleted = studyService.delete(id, userId);
         if (isDeleted) {
             return ResponseEntity.noContent().build();
@@ -182,8 +185,9 @@ public class StudiesController {
 
 
     @GetMapping("/studies/top-liked")
-    public ResponseEntity<List<StudyDTO>> getTopLikedFrees() {
-        List<StudyDTO> topLikedFrees = studyService.getTopLikedFrees();
+    public ResponseEntity<List<StudyDTO>> getTopLikedFrees(HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        List<StudyDTO> topLikedFrees = studyService.getTopLikedFrees(userId);
         if (topLikedFrees.isEmpty()) {
             return ResponseEntity.noContent().build(); // 204 No Content
         }
@@ -193,6 +197,7 @@ public class StudiesController {
 
     @GetMapping("/studies/sort-by-deadline")
     public Page<StudyDTO> sortByLikes(
+            HttpServletRequest request,
             @RequestParam(value = "page", required = false) Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,
             @RequestParam(value = "studyid", required = false) String studyid,
@@ -208,6 +213,7 @@ public class StudiesController {
         if (size == null || size <= 0) {
             size = 10;
         }
+        String userId = (String) request.getAttribute("username");
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "deadline"));
         Page<StudyDTO> studyList;
@@ -218,11 +224,11 @@ public class StudiesController {
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())
         ) {
-            studyList =  studyService.sortBydeadline(pageable);
+            studyList =  studyService.sortBydeadline(userId,pageable);
             return studyList;
         } else {
 
-            return studyService.searchdeadline(studyid,searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            return studyService.searchdeadline(userId,studyid,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
     }
 

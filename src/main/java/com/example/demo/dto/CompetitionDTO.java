@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 public class CompetitionDTO {
 
     private Long id;
+    @JsonIgnore
     private String userId;
     private String boardId;
     private String competitionTitle;
@@ -31,6 +32,7 @@ public class CompetitionDTO {
 
     private int scrap; // scrap 여부
     private int competitionLike; // 좋아요 여부
+    private boolean scrapped; // 사용자가 스크랩했는지 여부 추가
 
     // 파일 첨부를 위한 부분
     @JsonIgnore
@@ -40,12 +42,13 @@ public class CompetitionDTO {
     private int fileAttached;
     private List<String> imageUrls;
 
-    public CompetitionDTO(Long id, String competitionTitle, LocalDateTime competitionCreatedTime,Integer competitionLike, Integer scrap) {
+    public CompetitionDTO(Long id, String competitionTitle, LocalDateTime competitionCreatedTime,Integer competitionLike, Integer scrap,boolean scrapped) {
         this.id = id;
         this.competitionTitle = competitionTitle;
         this.competitionCreatedTime = competitionCreatedTime;
         this.competitionLike = competitionLike;
         this.scrap = scrap;
+        this.scrapped = scrapped;
     }
 
     public static CompetitionDTO toCompetitionDTO(CompetitionEntity competitionEntity) {

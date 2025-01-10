@@ -17,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class MainStudyDTO {
     private Long id;
+    @JsonIgnore
     private String userID;
     private String boardID;
     private String studyID; // 카테고리: "bootcamp", "industry", "study"

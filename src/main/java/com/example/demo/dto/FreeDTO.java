@@ -21,7 +21,10 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class FreeDTO {
     private Long id;
+
+    @JsonIgnore
     private String userID;
+
     private String boardID;
     private String freeTitle;
     private String freeContents;
@@ -32,6 +35,7 @@ public class FreeDTO {
 
     private int scrap;
     private int freeLike;
+    private boolean scrapped; // 사용자가 스크랩했는지 여부 추가
 
     @JsonIgnore
     private List<MultipartFile> freeFile;
@@ -40,12 +44,13 @@ public class FreeDTO {
     private int fileAttached;
     private List<String> imageUrls;
 
-    public FreeDTO(Long id, String freeTitle, LocalDateTime freeCreatedTime,Integer freeLike,Integer scrap) {
+    public FreeDTO(Long id, String freeTitle, LocalDateTime freeCreatedTime,Integer freeLike,Integer scrap,boolean scrapped) {
         this.id = id;
         this.freeTitle = freeTitle;
         this.freeCreatedTime = freeCreatedTime;
         this.freeLike = freeLike;
         this.scrap = scrap;
+        this.scrapped = scrapped;
     }
 
     public static FreeDTO toFreeDTO(FreeEntity freeEntity) {
