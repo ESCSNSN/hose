@@ -103,8 +103,10 @@ public class StudiesController {
 
 
     // POST /api/board/coding/update
-    @PostMapping("/studies/update")
-    public StudyDTO update(@RequestBody StudyDTO studyDTO) {
+    @PostMapping(value = "/studies/update",consumes = {"multipart/form-data"})
+    public StudyDTO update(HttpServletRequest request,@RequestBody StudyDTO studyDTO) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        studyDTO.setUserID(userId);
         return studyService.update(studyDTO); // 업데이트된 CodingDTO 반환
     }
 

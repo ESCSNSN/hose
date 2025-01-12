@@ -104,10 +104,47 @@ public class StudyService {
         return studyDTO;
     }
 
-    public StudyDTO update(StudyDTO studyDTO) {
-        StudyEntity studyEntity = StudyEntity.toUpdatedEntity(studyDTO);
+    @Transactional
+    public StudyDTO update(StudyDTO studyDTO) throws IOException {
+        // 1. 기존 FreeEntity 로드
+        StudyEntity studyEntity = studyRepository.findById(studyDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        // 2. FreeEntity의 필드 업데이트
+        studyEntity.setId(studyDTO.getId());
+        studyEntity.setStudyId(studyDTO.getStudyID());
+        studyEntity.setStudytitle(studyDTO.getStudyTitle());
+        studyEntity.setStudtycontents(studyDTO.getStudyContents());
+        studyEntity.setStudyhashtag(studyDTO.getStudyHashtag());
+        studyEntity.setStartTime(studyDTO.getStartTime());
+        studyEntity.setDeadline(studyDTO.getDeadline());
+        studyEntity.setRecruit(studyDTO.getRecruit());
+
+        // 3. 파일 업데이트 처리
+        if (studyDTO.getStudyFile() == null || studyDTO.getStudyFile().isEmpty()) {
+            studyEntity.setFileAttached(0);
+            // 기존 파일 삭제
+            studyEntity.getStudyFileEntityList().clear();
+        } else {
+            studyEntity.setFileAttached(1);
+            // 기존 파일 삭제
+            studyEntity.getStudyFileEntityList().clear();
+
+            // 새로운 파일 추가
+            for (MultipartFile studyFile : studyDTO.getStudyFile()) {
+                String originalFilename = studyFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                uploadFileToNaverCloud(storedFileName,studyFile);
+                // FreeFileEntity 생성 및 추가
+                StudyFileEntity studyFileEntity = StudyFileEntity.toStudyFileEntity(studyEntity, originalFilename, storedFileName);
+                studyEntity.getStudyFileEntityList().add(studyFileEntity);
+            }
+        }
+
+        // 4. FreeEntity 저장 (Cascade 옵션으로 FreeFileEntity도 저장됨)
         studyRepository.save(studyEntity);
-        return findByID(studyDTO.getId());
+
+        return studyDTO;
     }
 
     @Transactional

@@ -98,10 +98,44 @@ public class CodingService {
         return codingDTO;
     }
 
-    public CodingDTO update(CodingDTO codingDTO) {
-        CodingEntity codingEntity = CodingEntity.toUpdatedEntity(codingDTO);
+    @Transactional
+    public CodingDTO update(CodingDTO codingDTO) throws IOException {
+        // 1. 기존 FreeEntity 로드
+        CodingEntity codingEntity = codingRepository.findById(codingDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        // 2. FreeEntity의 필드 업데이트
+        codingEntity.setId(codingDTO.getId());
+        codingEntity.setCodingtitle(codingDTO.getCodingTitle());
+        codingEntity.setCodingcontents(codingDTO.getCodingContents());
+        codingEntity.setCodinghashtag(codingDTO.getCodingHashtag());
+        codingEntity.setCodingtype(codingDTO.getCodingType());
+
+        // 3. 파일 업데이트 처리
+        if (codingDTO.getCodingFile() == null || codingDTO.getCodingFile().isEmpty()) {
+            codingEntity.setFileAttached(0);
+            // 기존 파일 삭제
+            codingEntity.getCodingFileEntityList().clear();
+        } else {
+            codingEntity.setFileAttached(1);
+            // 기존 파일 삭제
+            codingEntity.getCodingFileEntityList().clear();
+
+            // 새로운 파일 추가
+            for (MultipartFile codingFile : codingDTO.getCodingFile()) {
+                String originalFilename = codingFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                uploadFileToNaverCloud(storedFileName,codingFile);
+                // FreeFileEntity 생성 및 추가
+                CodingFileEntity codingFileEntity = CodingFileEntity.toCodingFileEntity(codingEntity, originalFilename, storedFileName);
+                codingEntity.getCodingFileEntityList().add(codingFileEntity);
+            }
+        }
+
+        // 4. FreeEntity 저장 (Cascade 옵션으로 FreeFileEntity도 저장됨)
         codingRepository.save(codingEntity);
-        return findByID(codingDTO.getId());
+
+        return codingDTO;
     }
 
     @Transactional

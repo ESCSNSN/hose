@@ -102,8 +102,10 @@ public class CodingController {
     }
 
     // POST /api/board/coding/update
-    @PostMapping("/coding/update")
-    public CodingDTO update(@RequestBody CodingDTO codingDTO) {
+    @PostMapping(value = "/coding/update",consumes = {"multipart/form-data"})
+    public CodingDTO update(HttpServletRequest request,@ModelAttribute CodingDTO codingDTO) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        codingDTO.setUserID(userId);
         return codingService.update(codingDTO); // 업데이트된 CodingDTO 반환
     }
 

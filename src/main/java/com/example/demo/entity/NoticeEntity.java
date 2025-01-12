@@ -33,7 +33,7 @@ public class NoticeEntity extends NoticeBaseEntity {
     @Column(name = "is_pinned", nullable = false)
     private boolean isPinned = false;  // 고정 여부를 나타내는 필드, 기본값 false
 
-    @OneToMany(mappedBy = "noticeEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "noticeEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<NoticeFileEntity> noticeFileEntityList = new ArrayList<>();
 
     public static NoticeEntity toSaveEntity(NoticeDTO noticeDTO) {

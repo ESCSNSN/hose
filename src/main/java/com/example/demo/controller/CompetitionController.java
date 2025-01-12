@@ -101,8 +101,10 @@ public class CompetitionController {
         return ResponseEntity.ok(competitionDTO);
     }
 
-   @PostMapping("/competition/update")
-   public CompetitionDTO update(@ModelAttribute CompetitionDTO competitionDTO) {
+   @PostMapping(value = "/competition/update",consumes = {"multipart/form-data"})
+   public CompetitionDTO update(HttpServletRequest request,@ModelAttribute CompetitionDTO competitionDTO) throws IOException {
+       String userId = (String) request.getAttribute("username");
+       competitionDTO.setUserId(userId);
         return competitionService.update(competitionDTO);
    }
 

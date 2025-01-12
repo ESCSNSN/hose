@@ -1,9 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.FreeDTO;
-import com.example.demo.dto.GraduateDTO;
-import com.example.demo.dto.MainGraduateDTO;
-import com.example.demo.dto.QuestDTO;
+import com.example.demo.dto.*;
 import com.example.demo.entity.*;
 import com.example.demo.repository.GraduateFileReposiory;
 import com.example.demo.repository.GraduateLikeRepository;
@@ -103,10 +100,44 @@ public class GraduateService {
         return graduateDTO;
     }
 
-    public GraduateDTO update(GraduateDTO graduateDTO) {
-        GraduateEntity graduateEntity = GraduateEntity.toUpdatedEntity(graduateDTO);
+    @Transactional
+    public GraduateDTO update(GraduateDTO graduateDTO) throws IOException {
+        // 1. 기존 FreeEntity 로드
+        GraduateEntity graduateEntity = graduateRepository.findById(graduateDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        // 2. FreeEntity의 필드 업데이트
+        graduateEntity.setId(graduateDTO.getId());
+        graduateEntity.setGraduateId(graduateDTO.getGraduateId());
+        graduateEntity.setGraduatetitle(graduateDTO.getGraduateTitle());
+        graduateEntity.setGraduatecontents(graduateDTO.getGraduateContents());
+        graduateEntity.setGraduatehashtag(graduateDTO.getGraduateHashtag());
+
+        // 3. 파일 업데이트 처리
+        if (graduateDTO.getGraduateFile() == null || graduateDTO.getGraduateFile().isEmpty()) {
+            graduateEntity.setFileAttached(0);
+            // 기존 파일 삭제
+            graduateEntity.getGraduateFileEntityList().clear();
+        } else {
+            graduateEntity.setFileAttached(1);
+            // 기존 파일 삭제
+            graduateEntity.getGraduateFileEntityList().clear();
+
+            // 새로운 파일 추가
+            for (MultipartFile graduateFile : graduateDTO.getGraduateFile()) {
+                String originalFilename = graduateFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                uploadFileToNaverCloud(storedFileName,graduateFile);
+                // FreeFileEntity 생성 및 추가
+                GraduateFileEntity graduateFileEntity = GraduateFileEntity.toGraduateFileEntity(graduateEntity, originalFilename, storedFileName);
+                graduateEntity.getGraduateFileEntityList().add(graduateFileEntity);
+            }
+        }
+
+        // 4. FreeEntity 저장 (Cascade 옵션으로 FreeFileEntity도 저장됨)
         graduateRepository.save(graduateEntity);
-        return findByID(graduateDTO.getId());
+
+        return graduateDTO;
     }
 
     @Transactional

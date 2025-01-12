@@ -50,7 +50,7 @@ public class GraduateEntity extends GraduateBaseEntity {
     @Column
     private int fileAttached; // 1 or 0
 
-    @OneToMany(mappedBy = "graduateEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "graduateEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<GraduateFileEntity> graduateFileEntityList = new ArrayList<>();
 
     @OneToMany(mappedBy = "graduateEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 
+import com.example.demo.dto.CodingDTO;
 import com.example.demo.dto.CompetitionDTO;
 import com.example.demo.dto.FreeDTO;
 import com.example.demo.dto.MainCompetitionDTO;
@@ -119,10 +120,42 @@ public class CompetitionService {
         return competitionDTO;
     }
 
-    public CompetitionDTO update(CompetitionDTO competitionDTO) {
-        CompetitionEntity competitionEntity = CompetitionEntity.toUpdatedEntity(competitionDTO);
+    @Transactional
+    public CompetitionDTO update(CompetitionDTO competitionDTO) throws IOException {
+        // 1. 기존 FreeEntity 로드
+        CompetitionEntity competitionEntity = competitionRepository.findById(competitionDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        competitionEntity.setId(competitionDTO.getId());
+        competitionEntity.setCompetitiontitle(competitionDTO.getCompetitionTitle());
+        competitionEntity.setCompetitioncontents(competitionDTO.getCompetitionContents());
+        competitionEntity.setCompetitionhashtag(competitionDTO.getCompetitionHashtag());
+
+        // 3. 파일 업데이트 처리
+        if (competitionDTO.getCompetitionFile() == null || competitionDTO.getCompetitionFile().isEmpty()) {
+            competitionEntity.setFileAttached(0);
+            // 기존 파일 삭제
+            competitionEntity.getCompetitionFileEntityList().clear();
+        } else {
+            competitionEntity.setFileAttached(1);
+            // 기존 파일 삭제
+            competitionEntity.getCompetitionFileEntityList().clear();
+
+            // 새로운 파일 추가
+            for (MultipartFile competitionFile : competitionDTO.getCompetitionFile()) {
+                String originalFilename = competitionFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                uploadFileToNaverCloud(storedFileName,competitionFile);
+                // FreeFileEntity 생성 및 추가
+                CompetitionFileEntity competitionFileEntity = CompetitionFileEntity.toCompetitionFileEntity(competitionEntity, originalFilename, storedFileName);
+                competitionEntity.getCompetitionFileEntityList().add(competitionFileEntity);
+            }
+        }
+
+        // 4. FreeEntity 저장 (Cascade 옵션으로 FreeFileEntity도 저장됨)
         competitionRepository.save(competitionEntity);
-        return findByID(competitionDTO.getId());
+
+        return competitionDTO;
     }
 
     @Transactional

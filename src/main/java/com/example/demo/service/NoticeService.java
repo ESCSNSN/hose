@@ -1,6 +1,9 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.GraduateDTO;
 import com.example.demo.dto.NoticeDTO;
+import com.example.demo.entity.GraduateEntity;
+import com.example.demo.entity.GraduateFileEntity;
 import com.example.demo.entity.NoticeEntity;
 import com.example.demo.entity.NoticeFileEntity;
 import com.example.demo.repository.NoticeFileRepository;
@@ -112,10 +115,42 @@ public class NoticeService {
         return noticeDTO;
     }
 
-    public NoticeDTO update(NoticeDTO noticeDTO) {
-        NoticeEntity noticeEntity = NoticeEntity.toUpdatedEntity(noticeDTO);
+    @Transactional
+    public NoticeDTO update(NoticeDTO noticeDTO) throws IOException {
+        // 1. 기존 FreeEntity 로드
+        NoticeEntity noticeEntity = noticeRepository.findById(noticeDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        // 2. FreeEntity의 필드 업데이트
+        noticeEntity.setId(noticeDTO.getId());
+        noticeEntity.setNoticeTitle(noticeDTO.getNoticeTitle());
+        noticeEntity.setNoticeContents(noticeDTO.getNoticeContents());
+
+        // 3. 파일 업데이트 처리
+        if (noticeDTO.getNoticeFile() == null || noticeDTO.getNoticeFile().isEmpty()) {
+            noticeEntity.setFileAttached(0);
+            // 기존 파일 삭제
+            noticeEntity.getNoticeFileEntityList().clear();
+        } else {
+            noticeEntity.setFileAttached(1);
+            // 기존 파일 삭제
+            noticeEntity.getNoticeFileEntityList().clear();
+
+            // 새로운 파일 추가
+            for (MultipartFile noticeFile : noticeDTO.getNoticeFile()) {
+                String originalFilename = noticeFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                uploadFileToNaverCloud(storedFileName,noticeFile);
+                // FreeFileEntity 생성 및 추가
+                NoticeFileEntity noticeFileEntity = NoticeFileEntity.toNoticeFileEntity(noticeEntity, originalFilename, storedFileName);
+                noticeEntity.getNoticeFileEntityList().add(noticeFileEntity);
+            }
+        }
+
+        // 4. FreeEntity 저장 (Cascade 옵션으로 FreeFileEntity도 저장됨)
         noticeRepository.save(noticeEntity);
-        return findByID(noticeDTO.getId());
+
+        return noticeDTO;
     }
 
     @Transactional
