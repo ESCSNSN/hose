@@ -30,7 +30,7 @@ public class CommentService {
      *
      * @param commentDTO 댓글 데이터
      */
-    public void addComment(CommentDTO commentDTO) {
+    public void addComment(CommentDTO commentDTO, String postUser) {
         CommentEntity comment = new CommentEntity();
         comment.setContent(commentDTO.getContent());
         comment.setUserId(commentDTO.getUserId());

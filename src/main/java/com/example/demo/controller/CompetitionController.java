@@ -202,7 +202,7 @@ public class CompetitionController {
         commentDTO.setTargetType("Competition");
         commentDTO.setTargetId(id);
         commentDTO.setParentCommentId(parentCommentId);
-        commentService.addComment(commentDTO);
+        commentService.addComment(commentDTO, "competition");
         return ResponseEntity.ok(commentDTO);
     }
 

@@ -237,7 +237,8 @@ public class FreeController {
         commentDTO.setTargetType("free");
         commentDTO.setTargetId(id);
         commentDTO.setParentCommentId(parentCommentId);
-        commentService.addComment(commentDTO);
+        String postUser = freeService.findByID(id).getUserID();
+        commentService.addComment(commentDTO, postUser);
         return ResponseEntity.ok(commentDTO);
     }
 
