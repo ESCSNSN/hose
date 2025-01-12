@@ -33,6 +33,10 @@ public class StudyService {
     private final StudyLikeRepository studyLikeRepository;
     private final StudyScrapRepository studyScrapRepository;
 
+    public void deleteByAdmin(Long id) {
+        studyRepository.deleteById(id);
+    }
+
 
     public void save(StudyDTO studyDTO) throws IOException {
         // codingFile이 null이거나 비어 있는지 확인

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
@@ -21,6 +23,7 @@ public class CommentReportEntity {
 
     @ManyToOne(fetch = FetchType.LAZY) // 연관된 댓글 엔티티와의 관계 설정
     @JoinColumn(name = "comment_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.NO_ACTION)
     private CommentEntity comment;
 
     @Column(length = 30)

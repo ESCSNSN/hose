@@ -33,6 +33,7 @@ public class AdminController {
     private final CompetitionService competitionService;
     private final FreeService freeService;
     private final QuestService questService;
+    private final StudyService studyService;
 
     /**
      * 모든 댓글 신고 목록 조회
@@ -230,6 +231,8 @@ public class AdminController {
         }
     }
 
+
+
     /**
      * 관리자용 자유게시판 게시물 삭제
      * 예: DELETE /api/admin/free/{id}
@@ -280,6 +283,35 @@ public class AdminController {
     @DeleteMapping("/quest/{id}/comments/{commentId}")
     public ResponseEntity<String> deleteQuestCommentByAdmin(@PathVariable Long id,
                                                                   @PathVariable Long commentId) {
+        try {
+            commentService.deleteCommentByAdmin(commentId);
+            return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("댓글을 찾을 수 없습니다.");
+        }
+    }
+
+    /**
+     * 관리자용 스터디게시판 게시물 삭제
+     * 예: DELETE /api/admin/studies/{id}
+     */
+    @DeleteMapping("/studies/{id}")
+    public ResponseEntity<String> deleteStudyPostByAdmin(@PathVariable Long id) {
+        try {
+            studyService.deleteByAdmin(id);
+            return ResponseEntity.ok("자유게시판 게시물이 성공적으로 삭제되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("게시물을 찾을 수 없습니다.");
+        }
+    }
+
+    /**
+     * 관리자용 질문게시판 게시물 특정 댓글 삭제
+     * 예: DELETE /api/admin/studies/{id}/comments/{commentId}
+     */
+    @DeleteMapping("/studies/{id}/comments/{commentId}")
+    public ResponseEntity<String> deleteStudyCommentByAdmin(@PathVariable Long id,
+                                                            @PathVariable Long commentId) {
         try {
             commentService.deleteCommentByAdmin(commentId);
             return ResponseEntity.ok("댓글이 성공적으로 삭제되었습니다.");

@@ -85,4 +85,9 @@ public class RoomService {
         lectureTimeRepository.deleteAll(); // 모든 강의 삭제
         return count; // 삭제한 강의 수 반환
     }
+
+    //특정 강의실 이름으로 강의 조회
+    public List<LectureTime> getRoomWithLectureTimesByRoomNumber(String roomNumber) {
+        return lectureTimeRepository.findByRoomRoomNumber(roomNumber);
+    }
 }

@@ -55,4 +55,5 @@ public interface StudyRepository extends JpaRepository<StudyEntity, Long> {
     List<StudyEntity> findByUserId(String userId);
 
 
+
 }

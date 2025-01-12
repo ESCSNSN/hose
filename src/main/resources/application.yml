@@ -38,10 +38,14 @@ spring:
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG  # SQL ??? ??? ????
-    org.hibernate.type.descriptor.sql.BasicBinder: DEBUG  # SQL ???? ??? ??? ???
+    org.hibernate.SQL: INFO  # SQL ??? ??? ????
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN  # SQL ???? ??? ??? ???
+    springframework:
+      security=DEBUG:
+        springframework:
+          security=DEBUG:
+
+anonymization:
+  salt: asbgfkjasbkgnaskjngkrakljn
 
 
-auth:
-  service:
-    url: http://172.19.0.2:8081

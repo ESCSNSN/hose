@@ -17,13 +17,17 @@ import java.util.Map;
 public class TokenValidationInterceptor implements HandlerInterceptor {
 
     //@Value("http://ubuntu-esclogin-1:8081") // AUTH 서비스 URL
-    @Value("https://61010d194fbc.ngrok.app") // AUTH 서비스 URL
+    @Value("https://fd5ca3755e85.ngrok.app") // AUTH 서비스 URL
     private String authServiceUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            System.out.println(">>> [TokenValidationInterceptor] OPTIONS 요청, 통과");
+            return true; // 그냥 통과 (또는 CORS 필터가 헤더를 세팅하도록)
+        }
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
