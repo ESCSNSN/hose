@@ -234,13 +234,63 @@ public class StudiesController {
         }
     }
 
+    @GetMapping("/studies/myPost")
+    public Page<StudyDTO> pagingPost(
+            HttpServletRequest request,
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size,
+            @RequestParam(value = "studyId", required = false) String studyId)
+            {
+
+        if (page == null || page < 0) {
+            page = 0;
+        }
+        if (size == null || size <= 0) {
+            size = 10;
+        }
+        String userId = (String) request.getAttribute("username");
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<StudyDTO> studyList;
+        studyList = studyService.searchByuserId(userId,studyId,pageable);
+
+
+        return studyList;
+    }
+
+    @GetMapping("/studies/ApplyPost")
+    public Page<StudyDTO> pagingApplyPost(
+            HttpServletRequest request,
+            @RequestParam(value = "page", required = false) Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size,
+            @RequestParam(value = "studyId", required = false) String studyId)
+    {
+
+        if (page == null || page < 0) {
+            page = 0;
+        }
+        if (size == null || size <= 0) {
+            size = 10;
+        }
+        String userId = (String) request.getAttribute("username");
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<StudyDTO> studyList;
+        studyList = studyService.searchByApplyUserId(userId,studyId,pageable);
+
+
+        return studyList;
+    }
+
 
 
 
     @PostMapping("/studies/{studyId}/apply")
     public ResponseEntity<ApplyResponseDTO> applyToStudy(
-            @PathVariable Long studyId,
-            @Valid @RequestBody ApplyRequestDTO applyDTO) {
+            @PathVariable Long studyId,HttpServletRequest request) {
+        String userId = (String) request.getAttribute("username");
+        ApplyRequestDTO applyDTO = new ApplyRequestDTO();
+        applyDTO.setApplyUserId(userId);
 
         ApplyEntity applyEntity = studyService.applyToStudy(studyId, applyDTO);
         ApplyResponseDTO responseDTO = new ApplyResponseDTO(

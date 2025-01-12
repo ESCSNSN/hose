@@ -496,6 +496,60 @@ public class StudyService {
         return topStudiesMap;
     }
 
+    @Transactional
+    public Page<StudyDTO> searchByuserId(String userId,String studyid, Pageable pageable) {
+        Page<StudyEntity> studyEntities = studyRepository.findByUserIdOrStudyIdWithDeadlineAfterNative(userId,studyid, pageable);
+
+        // Lazy-loaded 컬렉션을 초기화
+        studyEntities.forEach(study -> study.getStudyFileEntityList().size());
+
+        LocalDate today = LocalDate.now();
+        // 엔티티를 DTO로 변환하면서 daysLeft 계산
+        Page<StudyDTO> studyDTOPage = studyEntities.map(study -> {
+            long daysLeft = ChronoUnit.DAYS.between(today, study.getDeadline().toLocalDate());
+
+            return new StudyDTO(
+                    study.getId(),
+                    study.getStudyId(),
+                    study.getStudytitle(),
+                    study.getStartTime(),
+                    study.getDeadline(),
+                    study.getRecruit(),
+                    study.getCountMember(),
+                    study.getScrap(),
+                    daysLeft,
+                    studyScrapRepository.existsByUserIdAndStudyEntityId(userId, study.getId())
+            );
+        });
+
+        return studyDTOPage;
+    }
+
+    @Transactional
+    public Page<StudyDTO> searchByApplyUserId(String userId, String studyid, Pageable pageable) {
+        // 지원한 스터디 조회
+        Page<StudyEntity> studyEntities = applyRepository.findAppliedStudiesByUserId(userId, studyid, pageable);
+
+        // DTO로 변환
+        return studyEntities.map(study -> {
+            long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), study.getDeadline().toLocalDate());
+            daysLeft = daysLeft >= 0 ? daysLeft : 0;
+
+            return new StudyDTO(
+                    study.getId(),
+                    study.getStudyId(),
+                    study.getStudytitle(),
+                    study.getStartTime(),
+                    study.getDeadline(),
+                    study.getRecruit(),
+                    study.getCountMember(),
+                    study.getScrap(),
+                    daysLeft,
+                    studyScrapRepository.existsByUserIdAndStudyEntityId(userId, study.getId())
+            );
+        });
+    }
+
 
     /**
      * 지원 신청을 저장하는 메서드
@@ -508,6 +562,7 @@ public class StudyService {
     public ApplyEntity applyToStudy(Long studyId, ApplyRequestDTO applyDTO) {
         StudyEntity study = studyRepository.findById(studyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "스터디를 찾을 수 없습니다."));
+
 
         String applyUserId = applyDTO.getApplyUserId();
 
@@ -565,6 +620,7 @@ public class StudyService {
      */
     @Transactional
     public ApplicantListResponseDTO getApplicants(String userId, Long studyId) {
+
         StudyEntity study = studyRepository.findById(studyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "스터디를 찾을 수 없습니다."));
 

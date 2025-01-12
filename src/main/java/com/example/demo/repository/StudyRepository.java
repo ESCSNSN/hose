@@ -69,6 +69,17 @@ public interface StudyRepository extends JpaRepository<StudyEntity, Long> {
             "ORDER BY s.deadline ASC")
     Page<StudyEntity> searchStudiesByFilters(String studyid, String title, String content, String hashtag, LocalDateTime now, Pageable pageable);
 
-
+    @Query(value = "SELECT * FROM study_table " +
+            "WHERE (user_id = :userId AND study_id LIKE CONCAT('%', :studyid, '%')) " +
+            "AND deadline > NOW() " +
+            "ORDER BY deadline ASC",
+            countQuery = "SELECT COUNT(*) FROM study_table " +
+                    "WHERE (user_id = :userId AND study_id LIKE CONCAT('%', :studyid, '%')) " +
+                    "AND deadline > NOW()",
+            nativeQuery = true)
+    Page<StudyEntity> findByUserIdOrStudyIdWithDeadlineAfterNative(
+            @Param("userId") String userId,
+            @Param("studyid") String studyid,
+            Pageable pageable);
 
 }
