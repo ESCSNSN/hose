@@ -88,10 +88,7 @@ public class GraduateDTO {
             graduateDTO.setStoredFileName(storedFileNameList);
 
             List<String> imageUrls = graduateEntity.getGraduateFileEntityList().stream()
-                    .map(file -> {
-                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                        return baseUrl + "/upload/" + file.getStoredFilename();
-                    })
+                    .map(file -> "https://kr.object.ncloudstorage.com" + "/" + "info0704" + "/" + file.getStoredFilename())
                     .collect(Collectors.toList());
             graduateDTO.setImageUrls(imageUrls);
         }

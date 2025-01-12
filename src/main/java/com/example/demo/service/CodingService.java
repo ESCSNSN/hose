@@ -6,6 +6,7 @@ import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +33,11 @@ public class CodingService {
     private final CodingLikeRepository codingLikeRepository;
     private final CodingScrapRepository codingScrapRepository;
 
+    @Autowired
+    private S3Client s3Client;
+
+    private final String bucketName = "info0704"; // 버킷 이름으로 교체
+
 
     public void save(CodingDTO codingDTO) throws IOException {
         // codingFile이 null이거나 비어 있는지 확인
@@ -44,16 +52,22 @@ public class CodingService {
             for (MultipartFile codingFile : codingDTO.getCodingFile()) {
                 String originalFilename = codingFile.getOriginalFilename();
                 String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
-                String savePath = "C:/springboot_img/" + storedFileName;
-
-                // 파일을 지정된 경로에 저장
-                codingFile.transferTo(new File(savePath));
-
+                uploadFileToNaverCloud(storedFileName, codingFile);
                 // CodingFileEntity 생성 및 저장
                 CodingFileEntity codingFileEntity = CodingFileEntity.toCodingFileEntity(board, originalFilename, storedFileName);
                 codingFileRepository.save(codingFileEntity);
             }
         }
+    }
+
+    private void uploadFileToNaverCloud(String key, MultipartFile file) throws IOException {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .acl("public-read") // 필요에 따라 ACL 조정
+                .build();
+
+        s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
     }
 
 

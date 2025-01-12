@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +33,11 @@ public class FreeService {
     private final FreeFileRepository freeFileRepository;
     private final FreeLikeRepository freeLikeRepository;
     private final FreeScrapRepository freeScrapRepository;
+
+    @Autowired
+    private S3Client s3Client;
+
+    private final String bucketName = "info0704"; // 버킷 이름으로 교체
 
 
 
@@ -52,16 +59,26 @@ public class FreeService {
             for (MultipartFile freeFile : freeDTO.getFreeFile()) {
                 String originalFilename = freeFile.getOriginalFilename();
                 String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
-                String savePath = "C:/springboot_img/" + storedFileName;
+
 
                 // 파일을 지정된 경로에 저장
-                freeFile.transferTo(new File(savePath));
+                uploadFileToNaverCloud(storedFileName, freeFile);
 
                 // CodingFileEntity 생성 및 저장
                 FreeFileEntity freeFileEntity = FreeFileEntity.toFreeFileEntity(board, originalFilename, storedFileName);
                 freeFileRepository.save(freeFileEntity);
             }
         }
+    }
+
+    private void uploadFileToNaverCloud(String key, MultipartFile file) throws IOException {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .acl("public-read") // 필요에 따라 ACL 조정
+                .build();
+
+        s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
     }
 
 
@@ -124,11 +141,7 @@ public class FreeService {
                 for (MultipartFile freeFile : freeDTO.getFreeFile()) {
                     String originalFilename = freeFile.getOriginalFilename();
                     String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
-                    String savePath = "C:/springboot_img/" + storedFileName;
-
-                    // 파일을 지정된 경로에 저장
-                    freeFile.transferTo(new File(savePath));
-
+                    uploadFileToNaverCloud(storedFileName,freeFile);
                     // FreeFileEntity 생성 및 추가
                     FreeFileEntity freeFileEntity = FreeFileEntity.toFreeFileEntity(freeEntity, originalFilename, storedFileName);
                     freeEntity.getFreeFileEntityList().add(freeFileEntity);

@@ -105,10 +105,7 @@ public class StudyDTO {
             studyDTO.setOriginalFileName(originalFileNameList);
             studyDTO.setStoredFileName(storedFileNameList);
             List<String> imageUrls = studyEntity.getStudyFileEntityList().stream()
-                    .map(file -> {
-                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                        return baseUrl + "/upload/" + file.getStoredFileName();
-                    })
+                    .map(file -> "https://kr.object.ncloudstorage.com" + "/" + "info0704" + "/" + file.getStoredFileName())
                     .collect(Collectors.toList());
             studyDTO.setImageUrls(imageUrls);
         }

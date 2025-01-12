@@ -11,6 +11,7 @@ import com.example.demo.repository.GraduateRepository;
 import com.example.demo.repository.GraduateScrapRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +39,11 @@ public class GraduateService {
     private final GraduateScrapRepository graduateScrapRepository;
     private final GraduateFileReposiory graduateFileReposiory;
 
+    @Autowired
+    private S3Client s3Client;
+
+    private final String bucketName = "info0704"; // 버킷 이름으로 교체
+
     public void save(GraduateDTO graduateDTO) throws IOException {
         if (graduateDTO.getGraduateFile() == null || graduateDTO.getGraduateFile().isEmpty()) {
             GraduateEntity graduateEntity = GraduateEntity.toSaveEntity(graduateDTO);
@@ -48,16 +56,23 @@ public class GraduateService {
             for (MultipartFile graduateFile : graduateDTO.getGraduateFile()) {
                 String originalFilename = graduateFile.getOriginalFilename();
                 String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
-                String savePath = "C:/springboot_img/" + storedFileName;
-
-                // 파일을 지정된 경로에 저장
-                graduateFile.transferTo(new File(savePath));
+                uploadFileToNaverCloud(storedFileName, graduateFile);
 
                 // CodingFileEntity 생성 및 저장
                 GraduateFileEntity graduateFileEntity = GraduateFileEntity.toGraduateFileEntity(board, originalFilename, storedFileName);
                 graduateFileReposiory.save(graduateFileEntity);
             }
         }
+    }
+
+    private void uploadFileToNaverCloud(String key, MultipartFile file) throws IOException {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .acl("public-read") // 필요에 따라 ACL 조정
+                .build();
+
+        s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
     }
 
 
