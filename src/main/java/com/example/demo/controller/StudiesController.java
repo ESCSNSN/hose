@@ -359,7 +359,8 @@ public class StudiesController {
         commentDTO.setTargetType("studies");
         commentDTO.setTargetId(id);
         commentDTO.setParentCommentId(parentCommentId);
-        commentService.addComment(commentDTO);
+        String postUser = studyService.findByID(id).getUserID();
+        commentService.addComment(commentDTO, postUser);
         return ResponseEntity.ok(commentDTO);
     }
 

@@ -241,7 +241,8 @@ public class CodingController {
         commentDTO.setTargetType("Coding");
         commentDTO.setTargetId(id);
         commentDTO.setParentCommentId(parentCommentId);
-        commentService.addComment(commentDTO);
+        String postUser = codingService.findByID(id).getUserID();
+        commentService.addComment(commentDTO, postUser);
         return ResponseEntity.ok(commentDTO);
     }
 

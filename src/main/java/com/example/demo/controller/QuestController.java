@@ -244,7 +244,8 @@ public class QuestController {
         commentDTO.setTargetType("quest");
         commentDTO.setTargetId(id);
         commentDTO.setParentCommentId(parentCommentId);
-        commentService.addComment(commentDTO);
+        String postUser = questService.findByID(id).getUserID();
+        commentService.addComment(commentDTO, postUser);
         return ResponseEntity.ok(commentDTO);
     }
 
