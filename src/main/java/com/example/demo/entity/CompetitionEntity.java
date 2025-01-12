@@ -43,7 +43,7 @@ public class CompetitionEntity extends CompetitionBaseEntity {
     @Column
     private int fileAttached; // 1 or 0
 
-    @OneToMany(mappedBy = "competitionEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "competitionEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CompetitionFileEntity> competitionFileEntityList = new ArrayList<>();
 
     @OneToMany(mappedBy = "competitionEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -69,6 +69,7 @@ public class CompetitionEntity extends CompetitionBaseEntity {
         competitionEntity.setCompetitiontitle(competitionDTO.getCompetitionTitle());
         competitionEntity.setCompetitioncontents(competitionDTO.getCompetitionContents());
         competitionEntity.setCompetitionhashtag(competitionDTO.getCompetitionHashtag());
+        competitionEntity.setFileAttached(competitionDTO.getCompetitionFile() != null && !competitionDTO.getCompetitionFile().isEmpty() ? 1 : 0);
         return competitionEntity;
     }
 

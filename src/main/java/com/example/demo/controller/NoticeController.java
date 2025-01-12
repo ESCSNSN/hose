@@ -77,14 +77,24 @@ public class NoticeController {
     public ResponseEntity<NoticeDTO> updateForm(
             @PathVariable Long id,
             HttpServletRequest request) {
+        String role = (String) request.getAttribute("role");
+        if (!"admin".equalsIgnoreCase(role)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied: Admin Role Required");
+        }
         String userId = (String) request.getAttribute("username");
         NoticeDTO noticeDTO = noticeService.findByID(id, userId);
         return ResponseEntity.ok(noticeDTO);
     }
 
     // POST /api/board/coding/update
-    @PostMapping("/notice/update")
-    public NoticeDTO update(@RequestBody NoticeDTO noticeDTO) {
+    @PostMapping(value = "/notice/update",consumes = {"multipart/form-data"})
+    public NoticeDTO update(HttpServletRequest request,@ModelAttribute NoticeDTO noticeDTO) throws IOException {
+        String role = (String) request.getAttribute("role");
+        if (!"admin".equalsIgnoreCase(role)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied: Admin Role Required");
+        }
+        String userId = (String) request.getAttribute("username");
+        noticeDTO.setUserId(userId);
         return noticeService.update(noticeDTO); // 업데이트된 CodingDTO 반환
     }
 
@@ -93,6 +103,10 @@ public class NoticeController {
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
             HttpServletRequest request) {
+        String role = (String) request.getAttribute("role");
+        if (!"admin".equalsIgnoreCase(role)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied: Admin Role Required");
+        }
         String userId = (String) request.getAttribute("username");
         boolean isDeleted = noticeService.delete(id, userId);
         if (isDeleted) {

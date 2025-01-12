@@ -6,6 +6,7 @@ import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +33,11 @@ public class CodingService {
     private final CodingLikeRepository codingLikeRepository;
     private final CodingScrapRepository codingScrapRepository;
 
+    @Autowired
+    private S3Client s3Client;
+
+    private final String bucketName = "info0704"; // 버킷 이름으로 교체
+
 
     public void save(CodingDTO codingDTO) throws IOException {
         // codingFile이 null이거나 비어 있는지 확인
@@ -44,16 +52,22 @@ public class CodingService {
             for (MultipartFile codingFile : codingDTO.getCodingFile()) {
                 String originalFilename = codingFile.getOriginalFilename();
                 String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
-                String savePath = "C:/springboot_img/" + storedFileName;
-
-                // 파일을 지정된 경로에 저장
-                codingFile.transferTo(new File(savePath));
-
+                uploadFileToNaverCloud(storedFileName, codingFile);
                 // CodingFileEntity 생성 및 저장
                 CodingFileEntity codingFileEntity = CodingFileEntity.toCodingFileEntity(board, originalFilename, storedFileName);
                 codingFileRepository.save(codingFileEntity);
             }
         }
+    }
+
+    private void uploadFileToNaverCloud(String key, MultipartFile file) throws IOException {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .acl("public-read") // 필요에 따라 ACL 조정
+                .build();
+
+        s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
     }
 
 
@@ -84,10 +98,44 @@ public class CodingService {
         return codingDTO;
     }
 
-    public CodingDTO update(CodingDTO codingDTO) {
-        CodingEntity codingEntity = CodingEntity.toUpdatedEntity(codingDTO);
+    @Transactional
+    public CodingDTO update(CodingDTO codingDTO) throws IOException {
+        // 1. 기존 FreeEntity 로드
+        CodingEntity codingEntity = codingRepository.findById(codingDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        // 2. FreeEntity의 필드 업데이트
+        codingEntity.setId(codingDTO.getId());
+        codingEntity.setCodingtitle(codingDTO.getCodingTitle());
+        codingEntity.setCodingcontents(codingDTO.getCodingContents());
+        codingEntity.setCodinghashtag(codingDTO.getCodingHashtag());
+        codingEntity.setCodingtype(codingDTO.getCodingType());
+
+        // 3. 파일 업데이트 처리
+        if (codingDTO.getCodingFile() == null || codingDTO.getCodingFile().isEmpty()) {
+            codingEntity.setFileAttached(0);
+            // 기존 파일 삭제
+            codingEntity.getCodingFileEntityList().clear();
+        } else {
+            codingEntity.setFileAttached(1);
+            // 기존 파일 삭제
+            codingEntity.getCodingFileEntityList().clear();
+
+            // 새로운 파일 추가
+            for (MultipartFile codingFile : codingDTO.getCodingFile()) {
+                String originalFilename = codingFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                uploadFileToNaverCloud(storedFileName,codingFile);
+                // FreeFileEntity 생성 및 추가
+                CodingFileEntity codingFileEntity = CodingFileEntity.toCodingFileEntity(codingEntity, originalFilename, storedFileName);
+                codingEntity.getCodingFileEntityList().add(codingFileEntity);
+            }
+        }
+
+        // 4. FreeEntity 저장 (Cascade 옵션으로 FreeFileEntity도 저장됨)
         codingRepository.save(codingEntity);
-        return findByID(codingDTO.getId());
+
+        return codingDTO;
     }
 
     @Transactional

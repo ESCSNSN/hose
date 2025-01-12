@@ -104,8 +104,10 @@ public class GraduateController {
     }
 
     // POST /api/board/coding/update
-    @PostMapping("/graduate/update")
-    public GraduateDTO update(@RequestBody GraduateDTO graduateDTO) {
+    @PostMapping(value = "/graduate/update",consumes = {"multipart/form-data"})
+    public GraduateDTO update(HttpServletRequest request,@RequestBody GraduateDTO graduateDTO) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        graduateDTO.setUserID(userId);
         return graduateService.update(graduateDTO); // 업데이트된 CodingDTO 반환
     }
 

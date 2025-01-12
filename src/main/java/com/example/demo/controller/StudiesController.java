@@ -103,8 +103,10 @@ public class StudiesController {
 
 
     // POST /api/board/coding/update
-    @PostMapping("/studies/update")
-    public StudyDTO update(@RequestBody StudyDTO studyDTO) {
+    @PostMapping(value = "/studies/update",consumes = {"multipart/form-data"})
+    public StudyDTO update(HttpServletRequest request,@RequestBody StudyDTO studyDTO) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        studyDTO.setUserID(userId);
         return studyService.update(studyDTO); // 업데이트된 CodingDTO 반환
     }
 
@@ -224,11 +226,11 @@ public class StudiesController {
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())
         ) {
-            studyList =  studyService.sortBydeadline(userId,pageable);
+            studyList =  studyService.sortByDeadline(userId,pageable);
             return studyList;
         } else {
 
-            return studyService.searchdeadline(userId,studyid,searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            return studyService.searchDeadline(userId,studyid,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
     }
 

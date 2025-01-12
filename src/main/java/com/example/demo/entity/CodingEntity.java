@@ -45,7 +45,7 @@ public class CodingEntity extends CodingBaseEntity {
     @Column
     private int fileAttached; // 1 or 0
 
-    @OneToMany(mappedBy = "codingEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "codingEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<CodingFileEntity> codingFileEntityList = new ArrayList<>();
 
     @OneToMany(mappedBy = "codingEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -73,6 +73,7 @@ public class CodingEntity extends CodingBaseEntity {
         codingEntity.setCodingcontents(codingDTO.getCodingContents());
         codingEntity.setCodinghashtag(codingDTO.getCodingHashtag());
         codingEntity.setCodingtype(codingDTO.getCodingType());
+        codingEntity.setFileAttached(codingDTO.getCodingFile() != null && !codingDTO.getCodingFile().isEmpty() ? 1 : 0);
         return codingEntity;
     }
 

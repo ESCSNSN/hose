@@ -64,7 +64,7 @@ public class StudyEntity extends StudyBaseEntity {
     @Column
     private int fileAttached; // 1 or 0
 
-    @OneToMany(mappedBy = "studyEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "studyEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<StudyFileEntity> studyFileEntityList = new ArrayList<>();
 
     @OneToMany(mappedBy = "studyEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)

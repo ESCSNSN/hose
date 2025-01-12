@@ -79,10 +79,7 @@ public class CodingDTO {
             codingDTO.setStoredFileName(storedFileNameList);
 
             List<String> imageUrls = codingEntity.getCodingFileEntityList().stream()
-                    .map(file -> {
-                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                        return baseUrl + "/upload/" + file.getStoredFileName();
-                    })
+                    .map(file -> "https://kr.object.ncloudstorage.com" + "/" + "info0704" + "/" + file.getStoredFileName())
                     .collect(Collectors.toList());
             codingDTO.setImageUrls(imageUrls);
         }

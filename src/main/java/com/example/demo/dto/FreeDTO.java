@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 @Getter
 @Setter
 @ToString
@@ -81,12 +82,10 @@ public class FreeDTO {
             freeDTO.setStoredFileName(storedFileNameList);
 
             List<String> imageUrls = freeEntity.getFreeFileEntityList().stream()
-                    .map(file -> {
-                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                        return baseUrl + "/upload/" + file.getStoredFileName();
-                    })
+                    .map(file -> "https://kr.object.ncloudstorage.com" + "/" + "info0704" + "/" + file.getStoredFileName())
                     .collect(Collectors.toList());
             freeDTO.setImageUrls(imageUrls);
+
         }
         return freeDTO;
     }

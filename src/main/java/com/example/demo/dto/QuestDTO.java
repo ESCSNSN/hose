@@ -80,10 +80,7 @@ public class QuestDTO {
             // 이미지 URL 생성
             // 이미지 URL 생성
             List<String> imageUrls = questEntity.getQuestFileEntityList().stream()
-                    .map(file -> {
-                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                        return baseUrl + "/upload/" + file.getStoredFileName();
-                    })
+                    .map(file -> "https://kr.object.ncloudstorage.com" + "/" + "info0704" + "/" + file.getStoredFileName())
                     .collect(Collectors.toList());
             questDTO.setImageUrls(imageUrls);
 

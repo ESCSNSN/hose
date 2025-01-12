@@ -72,10 +72,7 @@ public class MainCompetitionDTO {
             mainCompetitionDTO.setStoredFileName(storedFileNameList);
 
             List<String> imageUrls = competitionEntity.getCompetitionFileEntityList().stream()
-                    .map(file -> {
-                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                        return baseUrl + "/upload/" + file.getStoredFilename();
-                    })
+                    .map(file -> "https://kr.object.ncloudstorage.com" + "/" + "info0704" + "/" + file.getStoredFilename())
                     .collect(Collectors.toList());
             mainCompetitionDTO.setImageUrls(imageUrls);
         }

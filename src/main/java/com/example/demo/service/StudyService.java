@@ -6,6 +6,8 @@ import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +37,12 @@ public class StudyService {
     private final ApplyRepository applyRepository;
     private final StudyLikeRepository studyLikeRepository;
     private final StudyScrapRepository studyScrapRepository;
+
+
+    @Autowired
+    private S3Client s3Client;
+
+    private final String bucketName = "info0704"; // 버킷 이름으로 교체
 
     public void deleteByAdmin(Long id) {
         studyRepository.deleteById(id);
@@ -51,16 +62,23 @@ public class StudyService {
             for (MultipartFile studyFile : studyDTO.getStudyFile()) {
                 String originalFilename = studyFile.getOriginalFilename();
                 String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
-                String savePath = "C:/springboot_img/" + storedFileName;
-
-                // 파일을 지정된 경로에 저장
-                studyFile.transferTo(new File(savePath));
+                uploadFileToNaverCloud(storedFileName,studyFile);
 
                 // CodingFileEntity 생성 및 저장
                 StudyFileEntity studyFileEntity = StudyFileEntity.toStudyFileEntity(board, originalFilename, storedFileName);
                 studyFileRepository.save(studyFileEntity);
             }
         }
+    }
+
+    private void uploadFileToNaverCloud(String key, MultipartFile file) throws IOException {
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .acl("public-read") // 필요에 따라 ACL 조정
+                .build();
+
+        s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));
     }
 
 
@@ -88,10 +106,47 @@ public class StudyService {
         return studyDTO;
     }
 
-    public StudyDTO update(StudyDTO studyDTO) {
-        StudyEntity studyEntity = StudyEntity.toUpdatedEntity(studyDTO);
+    @Transactional
+    public StudyDTO update(StudyDTO studyDTO) throws IOException {
+        // 1. 기존 FreeEntity 로드
+        StudyEntity studyEntity = studyRepository.findById(studyDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        // 2. FreeEntity의 필드 업데이트
+        studyEntity.setId(studyDTO.getId());
+        studyEntity.setStudyId(studyDTO.getStudyID());
+        studyEntity.setStudytitle(studyDTO.getStudyTitle());
+        studyEntity.setStudtycontents(studyDTO.getStudyContents());
+        studyEntity.setStudyhashtag(studyDTO.getStudyHashtag());
+        studyEntity.setStartTime(studyDTO.getStartTime());
+        studyEntity.setDeadline(studyDTO.getDeadline());
+        studyEntity.setRecruit(studyDTO.getRecruit());
+
+        // 3. 파일 업데이트 처리
+        if (studyDTO.getStudyFile() == null || studyDTO.getStudyFile().isEmpty()) {
+            studyEntity.setFileAttached(0);
+            // 기존 파일 삭제
+            studyEntity.getStudyFileEntityList().clear();
+        } else {
+            studyEntity.setFileAttached(1);
+            // 기존 파일 삭제
+            studyEntity.getStudyFileEntityList().clear();
+
+            // 새로운 파일 추가
+            for (MultipartFile studyFile : studyDTO.getStudyFile()) {
+                String originalFilename = studyFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                uploadFileToNaverCloud(storedFileName,studyFile);
+                // FreeFileEntity 생성 및 추가
+                StudyFileEntity studyFileEntity = StudyFileEntity.toStudyFileEntity(studyEntity, originalFilename, storedFileName);
+                studyEntity.getStudyFileEntityList().add(studyFileEntity);
+            }
+        }
+
+        // 4. FreeEntity 저장 (Cascade 옵션으로 FreeFileEntity도 저장됨)
         studyRepository.save(studyEntity);
-        return findByID(studyDTO.getId());
+
+        return studyDTO;
     }
 
     @Transactional
@@ -170,16 +225,32 @@ public class StudyService {
 
     //마감임박순
     @Transactional
-    public Page<StudyDTO> searchdeadline(String userId,String studyid, String title, String content, String hashtag, Pageable pageable) {
-        Page<StudyEntity> studyEntities = studyRepository.searchStudiesByFilters(studyid, title, content, hashtag, pageable);
+    public Page<StudyDTO> searchDeadline(String userId, String studyid, String title, String content, String hashtag, Pageable pageable) {
+        // 페이지 번호와 페이지 크기 설정
+        int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
+        int pageLimit = pageable.getPageSize() > 0 ? pageable.getPageSize() : 10; // pageable에서 pageSize 가져오기
 
-        // Lazy-loaded 컬렉션을 초기화
+        // 현재 시간
+        LocalDateTime now = LocalDateTime.now();
+
+
+        // pageable을 사용해 페이지와 정렬을 설정 (마감 임박순: deadline 오름차순)
+        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.ASC, "deadline"));
+
+        // 마감일이 현재 시간 이후인 스터디만 조회
+        Page<StudyEntity> studyEntities = studyRepository.searchStudiesByFilters(studyid, title, content, hashtag, now, pageRequest);
+
+
+        // Lazy-loaded 컬렉션 초기화
         studyEntities.forEach(study -> study.getStudyFileEntityList().size());
 
+        // 오늘 날짜
         LocalDate today = LocalDate.now();
+
         // 엔티티를 DTO로 변환하면서 daysLeft 계산
         Page<StudyDTO> studyDTOPage = studyEntities.map(study -> {
             long daysLeft = ChronoUnit.DAYS.between(today, study.getDeadline().toLocalDate());
+            daysLeft = daysLeft >= 0 ? daysLeft : 0; // 음수일 경우 0으로 설정
 
             return new StudyDTO(
                     study.getId(),
@@ -200,27 +271,32 @@ public class StudyService {
 
 
     @Transactional
-    public Page<StudyDTO> sortBydeadline(String userId,Pageable pageable) {
+    public Page<StudyDTO> sortByDeadline(String userId, Pageable pageable) {
+        // 페이지 번호와 페이지 크기 설정
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
-        int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
+        int pageLimit = pageable.getPageSize() > 0 ? pageable.getPageSize() : 10; // pageable에서 pageSize 가져오기
 
         // 현재 시간
         LocalDateTime now = LocalDateTime.now();
 
-        // pageable을 사용해 페이지와 정렬을 설정 (마감 임박순: deadline 오름차순)
-        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.ASC, "deadline")); // 필드 이름 수정: "dealine" → "deadline"
 
-        // 마감일이 현재 시간 이후인 스터디만 조회
-        Page<StudyEntity> studyEntities = studyRepository.findByDeadlineGreaterThanEqualOrderByDeadlineAsc(now, pageRequest);
+        // Pageable 설정 (마감 임박순: deadline 오름차순)
+        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.ASC, "deadline"));
+
+        // 마감일이 현재 시간 이후인 스터디만 조회 (네이티브 쿼리)
+        Page<StudyEntity> studyEntities = studyRepository.findUpcomingStudies(pageRequest);
+
 
         // 엔티티를 DTO로 변환하면서 daysLeft 계산
         return studyEntities.map(study -> {
             long daysLeft = 0;
             if (study.getDeadline() != null) {
+                LocalDateTime deadline = study.getDeadline();
                 LocalDate today = LocalDate.now();
-                LocalDate deadlineDate = study.getDeadline().toLocalDate();
+                LocalDate deadlineDate = deadline.toLocalDate();
                 daysLeft = ChronoUnit.DAYS.between(today, deadlineDate);
                 daysLeft = daysLeft >= 0 ? daysLeft : 0; // 음수일 경우 0으로 설정
+
             }
 
             return new StudyDTO(
@@ -237,6 +313,7 @@ public class StudyService {
             );
         });
     }
+
 
 
     @Transactional

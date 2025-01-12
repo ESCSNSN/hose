@@ -16,8 +16,8 @@ spring:
     maximumPoolSize: 10
   servlet:
     multipart:
-      max-file-size: 50MB  # ??? ?? ??
-      max-request-size: 50MB  # ??? ?? ??
+      max-file-size: 50MB  # 최대 파일 크기
+      max-request-size: 50MB  # 최대 요청 크기
   thymeleaf:
     cache: false
 
@@ -31,21 +31,22 @@ spring:
     properties:
       hibernate:
         highlight_sql: true
-        generate_statistics: true  # SQL ?? ??? ???
+        generate_statistics: true  # SQL 통계 생성
         dialect: org.hibernate.dialect.MySQLDialect
         jdbc:
-          batch_size: 20  # Batch ?? (??)
+          batch_size: 20  # 배치 사이즈
 
 logging:
   level:
-    org.hibernate.SQL: INFO  # SQL ??? ??? ????
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN  # SQL ???? ??? ??? ???
-    springframework:
-      security=DEBUG:
-        springframework:
-          security=DEBUG:
+    org.hibernate.SQL: INFO  # SQL 로그 레벨
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN  # 바인더 로그 레벨
+    org.springframework.security: DEBUG  # Spring Security 로그 레벨
+
+ncloud:
+  object-storage:
+    endpoint: https://kr.object.ncloudstorage.com
+    bucket-name: info0704
+
 
 anonymization:
   salt: asbgfkjasbkgnaskjngkrakljn
-
-

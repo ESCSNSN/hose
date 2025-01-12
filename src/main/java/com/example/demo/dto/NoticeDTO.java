@@ -69,10 +69,7 @@ public class NoticeDTO {
             noticeDTO.setStoredFileName(storedFileNameList);
 
             List<String> imageUrls = noticeEntity.getNoticeFileEntityList().stream()
-                    .map(file -> {
-                        String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
-                        return baseUrl + "/upload/" + file.getStoredFilename();
-                    })
+                    .map(file -> "https://kr.object.ncloudstorage.com" + "/" + "info0704" + "/" + file.getStoredFilename())
                     .collect(Collectors.toList());
             noticeDTO.setImageUrls(imageUrls);
         }
