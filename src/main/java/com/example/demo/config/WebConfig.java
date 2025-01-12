@@ -64,7 +64,8 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/admin/**") // 보호할 엔드포인트
                 .addPathPatterns("/api/mypage/**") // 보호할 엔드포인트
                 .addPathPatterns("/api/board/**")
-                .excludePathPatterns("/api/auth/**","/api/notice/**", "api/board/main/**"); // AUTH 엔드포인트 제외
+                .addPathPatterns("/api/board/main/**")
+                .excludePathPatterns("/api/auth/**","/api/notice/**"); // AUTH 엔드포인트 제외
 
 
         // 관리자 역할 검증 인터셉터 등록
