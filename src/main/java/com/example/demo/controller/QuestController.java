@@ -100,8 +100,10 @@ public class QuestController {
 
 
     // POST /api/board/quest/update
-    @PostMapping("/quest/update")
-    public QuestDTO update(@RequestBody QuestDTO questDTO) {
+    @PostMapping(value = "/quest/update",consumes = {"multipart/form-data"})
+    public QuestDTO update(@ModelAttribute QuestDTO questDTO,HttpServletRequest request) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        questDTO.setUserID(userId);
         return questService.update(questDTO); // 업데이트된 questDTO 반환
     }
 

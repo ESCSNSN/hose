@@ -42,7 +42,7 @@ public class QuestEntity extends QuestBaseEntity {
     @Column
     private int fileAttached; // 1 or 0
 
-    @OneToMany(mappedBy = "questEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "questEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<QuestFileEntity> questFileEntityList = new ArrayList<>();
 
     @OneToMany(mappedBy = "questEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -68,6 +68,7 @@ public class QuestEntity extends QuestBaseEntity {
         questEntity.setQuesttitle(questDTO.getQuestTitle());
         questEntity.setQuestcontents(questDTO.getQuestContents());
         questEntity.setQuesthashtag(questDTO.getQuestHashtag());
+        questEntity.setFileAttached(questDTO.getQuestFile() != null && !questDTO.getQuestFile().isEmpty() ? 1 : 0);
         return questEntity;
     }
 

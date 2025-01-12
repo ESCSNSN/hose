@@ -46,7 +46,7 @@ public class FreeEntity extends FreeBaseEntity {
     @Column
     private int fileAttached; // 1 or 0
 
-    @OneToMany(mappedBy = "freeEntity", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "freeEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<FreeFileEntity> freeFileEntityList = new ArrayList<>();
 
     @OneToMany(mappedBy = "freeEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -65,6 +65,7 @@ public class FreeEntity extends FreeBaseEntity {
         return freeEntity;
     }
 
+
     public static FreeEntity toUpdatedEntity(FreeDTO freeDTO) {
         FreeEntity freeEntity = new FreeEntity();
         freeEntity.setId(freeDTO.getId());
@@ -72,6 +73,7 @@ public class FreeEntity extends FreeBaseEntity {
         freeEntity.setFreetitle(freeDTO.getFreeTitle());
         freeEntity.setFreecontents(freeDTO.getFreeContents());
         freeEntity.setFreehashtag(freeDTO.getFreeHashtag());
+        freeEntity.setFileAttached(freeDTO.getFreeFile() != null && !freeDTO.getFreeFile().isEmpty() ? 1 : 0);
         return freeEntity;
     }
 

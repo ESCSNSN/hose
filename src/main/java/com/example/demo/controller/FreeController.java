@@ -96,8 +96,10 @@ public class FreeController {
     }
 
     // POST /api/board/coding/update
-    @PostMapping("/free/update")
-    public FreeDTO update(@RequestBody FreeDTO freeDTO) {
+    @PostMapping(value = "/free/update",consumes = {"multipart/form-data"})
+    public FreeDTO update(HttpServletRequest request,@ModelAttribute FreeDTO freeDTO) throws IOException {
+        String userId = (String) request.getAttribute("username");
+        freeDTO.setUserID(userId);
         return freeService.update(freeDTO); // 업데이트된 CodingDTO 반환
     }
 

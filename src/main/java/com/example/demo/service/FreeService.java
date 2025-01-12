@@ -7,6 +7,7 @@ import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,6 +41,7 @@ public class FreeService {
     public void save(FreeDTO freeDTO) throws IOException {
         // codingFile이 null이거나 비어 있는지 확인
         if (freeDTO.getFreeFile() == null || freeDTO.getFreeFile().isEmpty()) {
+
             FreeEntity freeEntity = FreeEntity.toSaveEntity(freeDTO);
             freeRepository.save(freeEntity);
         } else {
@@ -91,11 +93,55 @@ public class FreeService {
         return freeDTO;
     }
 
-    public FreeDTO update(FreeDTO freeDTO) {
-        FreeEntity freeEntity = FreeEntity.toUpdatedEntity(freeDTO);
-        freeRepository.save(freeEntity);
-        return findByID(freeDTO.getId());
-    }
+
+
+
+
+
+        @Transactional
+        public FreeDTO update(FreeDTO freeDTO) throws IOException {
+            // 1. 기존 FreeEntity 로드
+            FreeEntity freeEntity = freeRepository.findById(freeDTO.getId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+            // 2. FreeEntity의 필드 업데이트
+            freeEntity.setUserId(freeDTO.getUserID());
+            freeEntity.setFreetitle(freeDTO.getFreeTitle());
+            freeEntity.setFreecontents(freeDTO.getFreeContents());
+            freeEntity.setFreehashtag(freeDTO.getFreeHashtag());
+
+            // 3. 파일 업데이트 처리
+            if (freeDTO.getFreeFile() == null || freeDTO.getFreeFile().isEmpty()) {
+                freeEntity.setFileAttached(0);
+                // 기존 파일 삭제
+                freeEntity.getFreeFileEntityList().clear();
+            } else {
+                freeEntity.setFileAttached(1);
+                // 기존 파일 삭제
+                freeEntity.getFreeFileEntityList().clear();
+
+                // 새로운 파일 추가
+                for (MultipartFile freeFile : freeDTO.getFreeFile()) {
+                    String originalFilename = freeFile.getOriginalFilename();
+                    String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                    String savePath = "C:/springboot_img/" + storedFileName;
+
+                    // 파일을 지정된 경로에 저장
+                    freeFile.transferTo(new File(savePath));
+
+                    // FreeFileEntity 생성 및 추가
+                    FreeFileEntity freeFileEntity = FreeFileEntity.toFreeFileEntity(freeEntity, originalFilename, storedFileName);
+                    freeEntity.getFreeFileEntityList().add(freeFileEntity);
+                }
+            }
+
+            // 4. FreeEntity 저장 (Cascade 옵션으로 FreeFileEntity도 저장됨)
+            freeRepository.save(freeEntity);
+
+            return freeDTO;
+        }
+
+
 
     @Transactional
     public boolean delete(Long id, String userId) {

@@ -90,10 +90,47 @@ public class QuestService {
         return questDTO;
     }
 
-    public QuestDTO update(QuestDTO questDTO) {
-        QuestEntity questEntity = QuestEntity.toUpdatedEntity(questDTO);
+    @Transactional
+    public QuestDTO update(QuestDTO questDTO) throws IOException {
+        // 1. 기존 FreeEntity 로드
+        QuestEntity questEntity = questRepository.findById(questDTO.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "퀘스트를 찾을 수 없습니다."));
+
+        // 2. FreeEntity의 필드 업데이트
+        questEntity.setUserId(questDTO.getUserID());
+        questEntity.setQuesttitle(questDTO.getQuestTitle());
+        questEntity.setQuestcontents(questDTO.getQuestContents());
+        questEntity.setQuesthashtag(questDTO.getQuestHashtag());
+
+        // 3. 파일 업데이트 처리
+        if (questDTO.getQuestFile() == null || questDTO.getQuestFile().isEmpty()) {
+            questEntity.setFileAttached(0);
+            // 기존 파일 삭제
+            questEntity.getQuestFileEntityList().clear();
+        } else {
+            questEntity.setFileAttached(1);
+            // 기존 파일 삭제
+            questEntity.getQuestFileEntityList().clear();
+
+            // 새로운 파일 추가
+            for (MultipartFile questFile : questDTO.getQuestFile()) {
+                String originalFilename = questFile.getOriginalFilename();
+                String storedFileName = System.currentTimeMillis() + "_" + originalFilename;
+                String savePath = "C:/springboot_img/" + storedFileName;
+
+                // 파일을 지정된 경로에 저장
+                questFile.transferTo(new File(savePath));
+
+                // FreeFileEntity 생성 및 추가
+                QuestFileEntity questFileEntity = QuestFileEntity.toQuestFileEntity(questEntity, originalFilename, storedFileName);
+                questEntity.getQuestFileEntityList().add(questFileEntity);
+            }
+        }
+
+        // 4. FreeEntity 저장 (Cascade 옵션으로 FreeFileEntity도 저장됨)
         questRepository.save(questEntity);
-        return findByID(questDTO.getId());
+
+        return questDTO;
     }
 
     @Transactional
