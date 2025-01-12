@@ -226,11 +226,11 @@ public class StudiesController {
                 (contentKeyword == null || contentKeyword.isEmpty()) &&
                 (hashtagKeyword == null || hashtagKeyword.isEmpty())
         ) {
-            studyList =  studyService.sortBydeadline(userId,pageable);
+            studyList =  studyService.sortByDeadline(userId,pageable);
             return studyList;
         } else {
 
-            return studyService.searchdeadline(userId,studyid,searchKeyword, contentKeyword, hashtagKeyword, pageable);
+            return studyService.searchDeadline(userId,studyid,searchKeyword, contentKeyword, hashtagKeyword, pageable);
         }
     }
 

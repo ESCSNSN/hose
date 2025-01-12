@@ -43,16 +43,31 @@ public interface StudyRepository extends JpaRepository<StudyEntity, Long> {
             Pageable pageable);
 
     // 마감 임박순으로 마감일이 현재 시간 이후인 스터디 조회
-    Page<StudyEntity> findByDeadlineGreaterThanEqualOrderByDeadlineAsc(LocalDateTime deadline, Pageable pageable);
+    Page<StudyEntity> findByDeadlineLessThanEqualOrderByDeadlineAsc(LocalDateTime deadline, Pageable pageable);
 
 
     List<StudyEntity> findByStudyLikeGreaterThanEqualOrderByStudyCreatedTimeDesc(int studyLike, Pageable pageable);
+
+
+    @Query(value = "SELECT * FROM study_table WHERE deadline > NOW() ORDER BY deadline ASC",
+            countQuery = "SELECT count(*) FROM study_table WHERE deadline > NOW()",
+            nativeQuery = true)
+    Page<StudyEntity> findUpcomingStudies(Pageable pageable);
 
     List<StudyEntity> findAllByIdIn(List<Long> ids);
 
     @Query("SELECT DISTINCT s FROM StudyEntity s LEFT JOIN FETCH s.studyFileEntityList WHERE s.studyId = :studyID ORDER BY s.studyCreatedTime DESC, s.id DESC")
     List<StudyEntity> findTopStudiesByStudyId(String studyID, Pageable pageable);
     List<StudyEntity> findByUserId(String userId);
+
+    @Query("SELECT s FROM StudyEntity s " +
+            "WHERE (:studyid IS NULL OR s.studyId LIKE %:studyid%) " +
+            "AND (:title IS NULL OR s.studytitle LIKE %:title%) " +
+            "AND (:content IS NULL OR s.studtycontents LIKE %:content%) " +
+            "AND (:hashtag IS NULL OR s.studyhashtag LIKE %:hashtag%) " +
+            "AND s.deadline > :now " +  // 마감일 필터 추가
+            "ORDER BY s.deadline ASC")
+    Page<StudyEntity> searchStudiesByFilters(String studyid, String title, String content, String hashtag, LocalDateTime now, Pageable pageable);
 
 
 

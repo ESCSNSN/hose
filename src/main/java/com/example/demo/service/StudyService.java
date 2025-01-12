@@ -6,6 +6,7 @@ import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
@@ -223,16 +225,32 @@ public class StudyService {
 
     //마감임박순
     @Transactional
-    public Page<StudyDTO> searchdeadline(String userId,String studyid, String title, String content, String hashtag, Pageable pageable) {
-        Page<StudyEntity> studyEntities = studyRepository.searchStudiesByFilters(studyid, title, content, hashtag, pageable);
+    public Page<StudyDTO> searchDeadline(String userId, String studyid, String title, String content, String hashtag, Pageable pageable) {
+        // 페이지 번호와 페이지 크기 설정
+        int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
+        int pageLimit = pageable.getPageSize() > 0 ? pageable.getPageSize() : 10; // pageable에서 pageSize 가져오기
 
-        // Lazy-loaded 컬렉션을 초기화
+        // 현재 시간
+        LocalDateTime now = LocalDateTime.now();
+
+
+        // pageable을 사용해 페이지와 정렬을 설정 (마감 임박순: deadline 오름차순)
+        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.ASC, "deadline"));
+
+        // 마감일이 현재 시간 이후인 스터디만 조회
+        Page<StudyEntity> studyEntities = studyRepository.searchStudiesByFilters(studyid, title, content, hashtag, now, pageRequest);
+
+
+        // Lazy-loaded 컬렉션 초기화
         studyEntities.forEach(study -> study.getStudyFileEntityList().size());
 
+        // 오늘 날짜
         LocalDate today = LocalDate.now();
+
         // 엔티티를 DTO로 변환하면서 daysLeft 계산
         Page<StudyDTO> studyDTOPage = studyEntities.map(study -> {
             long daysLeft = ChronoUnit.DAYS.between(today, study.getDeadline().toLocalDate());
+            daysLeft = daysLeft >= 0 ? daysLeft : 0; // 음수일 경우 0으로 설정
 
             return new StudyDTO(
                     study.getId(),
@@ -253,27 +271,32 @@ public class StudyService {
 
 
     @Transactional
-    public Page<StudyDTO> sortBydeadline(String userId,Pageable pageable) {
+    public Page<StudyDTO> sortByDeadline(String userId, Pageable pageable) {
+        // 페이지 번호와 페이지 크기 설정
         int page = Math.max(pageable.getPageNumber(), 0); // 페이지가 음수일 경우 0으로 설정
-        int pageLimit = 10; // 한 페이지에 보여줄 글 갯수
+        int pageLimit = pageable.getPageSize() > 0 ? pageable.getPageSize() : 10; // pageable에서 pageSize 가져오기
 
         // 현재 시간
         LocalDateTime now = LocalDateTime.now();
 
-        // pageable을 사용해 페이지와 정렬을 설정 (마감 임박순: deadline 오름차순)
-        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.ASC, "deadline")); // 필드 이름 수정: "dealine" → "deadline"
 
-        // 마감일이 현재 시간 이후인 스터디만 조회
-        Page<StudyEntity> studyEntities = studyRepository.findByDeadlineGreaterThanEqualOrderByDeadlineAsc(now, pageRequest);
+        // Pageable 설정 (마감 임박순: deadline 오름차순)
+        Pageable pageRequest = PageRequest.of(page, pageLimit, Sort.by(Sort.Direction.ASC, "deadline"));
+
+        // 마감일이 현재 시간 이후인 스터디만 조회 (네이티브 쿼리)
+        Page<StudyEntity> studyEntities = studyRepository.findUpcomingStudies(pageRequest);
+
 
         // 엔티티를 DTO로 변환하면서 daysLeft 계산
         return studyEntities.map(study -> {
             long daysLeft = 0;
             if (study.getDeadline() != null) {
+                LocalDateTime deadline = study.getDeadline();
                 LocalDate today = LocalDate.now();
-                LocalDate deadlineDate = study.getDeadline().toLocalDate();
+                LocalDate deadlineDate = deadline.toLocalDate();
                 daysLeft = ChronoUnit.DAYS.between(today, deadlineDate);
                 daysLeft = daysLeft >= 0 ? daysLeft : 0; // 음수일 경우 0으로 설정
+
             }
 
             return new StudyDTO(
@@ -290,6 +313,7 @@ public class StudyService {
             );
         });
     }
+
 
 
     @Transactional
