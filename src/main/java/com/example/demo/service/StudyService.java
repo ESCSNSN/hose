@@ -38,6 +38,7 @@ public class StudyService {
     private final StudyLikeRepository studyLikeRepository;
     private final StudyScrapRepository studyScrapRepository;
 
+    private final NotificationService notificationService;
 
     @Autowired
     private S3Client s3Client;
@@ -581,6 +582,7 @@ public class StudyService {
         }
 
         ApplyEntity applyEntity = ApplyEntity.toApplyEntity(study, applyUserId, false);
+        notificationService.sendNotification(study.getUserId(), "새로운 신청자가 스터디 모집에 신청했습니다!", study.getStudytitle());
         return applyRepository.save(applyEntity);
     }
 
@@ -613,7 +615,7 @@ public class StudyService {
         // 신청 수락 처리
         applyEntity.setAccept(true);
         applyRepository.save(applyEntity);
-
+        notificationService.sendNotification(applyEntity.getApplyUserId(), "스터디에 합류하셨습니다!", study.getStudytitle());
         // 스터디의 회원 수 증가
         study.setCountMember(study.getCountMember() + 1);
         studyRepository.save(study);
@@ -683,6 +685,7 @@ public class StudyService {
             // 변경된 StudyEntity를 저장
             studyRepository.save(study);
         }
+        notificationService.sendNotification(applyEntity.getApplyUserId(), "아쉽게도 스터디에 거절되셨습니다.!", study.getStudytitle());
 
         // 지원 신청 삭제 (거절)
         applyRepository.delete(applyEntity);
