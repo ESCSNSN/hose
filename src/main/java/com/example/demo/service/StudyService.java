@@ -497,8 +497,8 @@ public class StudyService {
     }
 
     @Transactional
-    public Page<StudyDTO> searchByuserId(String userId,String studyid, Pageable pageable) {
-        Page<StudyEntity> studyEntities = studyRepository.findByUserIdOrStudyIdWithDeadlineAfterNative(userId,studyid, pageable);
+    public Page<StudyDTO> searchByUserId(String userId,String studyId, Pageable pageable) {
+        Page<StudyEntity> studyEntities = studyRepository.findByUserIdOrStudyIdWithDeadlineAfterNative(userId,studyId, pageable);
 
         // Lazy-loaded 컬렉션을 초기화
         studyEntities.forEach(study -> study.getStudyFileEntityList().size());

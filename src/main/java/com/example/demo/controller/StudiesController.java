@@ -252,7 +252,7 @@ public class StudiesController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
         Page<StudyDTO> studyList;
-        studyList = studyService.searchByuserId(userId,studyId,pageable);
+        studyList = studyService.searchByUserId(userId,studyId,pageable);
 
 
         return studyList;
