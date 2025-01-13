@@ -12,10 +12,11 @@ public class NotificationService {
     private final RestTemplate restTemplate;
 
     public void sendNotification(String userId, String title, String content) {
-        String url = "/notification/" + userId;
+        String url = "https://rmation-chat.kro.kr/notification/" + userId;
         NotificationRequest notificationRequest = new NotificationRequest(title, content);
         restTemplate.postForObject(url, notificationRequest, Void.class);
     }
+
 
     private static class NotificationRequest {
         private String title;
@@ -26,6 +27,21 @@ public class NotificationService {
             this.content = content;
         }
 
-        // Getters and setters (if needed)
+        // Getter와 Setter
+        public String getTitle() {
+            return title;
+        }
+
+        public void setTitle(String title) {
+            this.title = title;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
+        }
     }
 }

@@ -8,6 +8,7 @@ import com.example.demo.exception.UnauthorizedDeletionException;
 import com.example.demo.repository.CodingRepository;
 import com.example.demo.service.CodingService;
 import com.example.demo.service.CommentService;
+import com.example.demo.service.NotificationService;
 import com.example.demo.service.PostReportService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class CodingController {
 
     private final CodingService codingService;
     private final CommentService commentService;
+    private final NotificationService notificationService;
     private final PostReportService postReportService;
     private final CodingRepository codingRepository;
 

@@ -23,6 +23,7 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final CommentReportService commentReportService;
+    private final NotificationService notificationService;
     private final HashUtil hashUtil;
 
     /**
@@ -46,6 +47,7 @@ public class CommentService {
         }
 
         commentRepository.save(comment);
+        notificationService.sendNotification(postUser, "새로운 댓글이 달렸습니다.", comment.getContent());
     }
 
     /**
