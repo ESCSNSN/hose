@@ -52,10 +52,11 @@ public class StudyDTO {
     private int fileAttached;
     private List<String> imageUrls;
 
-    public StudyDTO(Long id, String studyID, String studyTitle,LocalDateTime startTime,LocalDateTime deadline,Integer recruit,Integer countMember,Integer scrap,Long daysLeft,boolean scrapped) {
+    public StudyDTO(Long id, String studyID, String studyTitle, LocalDateTime studyCreatedTime,LocalDateTime startTime,LocalDateTime deadline,Integer recruit,Integer countMember,Integer scrap,Long daysLeft,boolean scrapped) {
         this.id = id;
         this.studyID = studyID;
         this.studyTitle = studyTitle;
+        this.studyCreatedTime = studyCreatedTime;
         this.startTime = startTime;
         this.deadline = deadline;
         this.recruit = recruit;

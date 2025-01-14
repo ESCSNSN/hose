@@ -38,6 +38,7 @@ public class StudyService {
     private final StudyLikeRepository studyLikeRepository;
     private final StudyScrapRepository studyScrapRepository;
 
+    private final NotificationService notificationService;
 
     @Autowired
     private S3Client s3Client;
@@ -180,6 +181,7 @@ public class StudyService {
                     study.getId(),
                     study.getStudyId(),
                     study.getStudytitle(),
+                    study.getStudyCreatedTime(),
                     study.getStartTime(),
                     study.getDeadline(),
                     study.getRecruit(),
@@ -210,6 +212,7 @@ public class StudyService {
                     study.getId(),
                     study.getStudyId(),
                     study.getStudytitle(),
+                    study.getStudyCreatedTime(),
                     study.getStartTime(),
                     study.getDeadline(),
                     study.getRecruit(),
@@ -256,6 +259,7 @@ public class StudyService {
                     study.getId(),
                     study.getStudyId(),
                     study.getStudytitle(),
+                    study.getStudyCreatedTime(),
                     study.getStartTime(),
                     study.getDeadline(),
                     study.getRecruit(),
@@ -303,6 +307,7 @@ public class StudyService {
                     study.getId(),
                     study.getStudyId(),
                     study.getStudytitle(),
+                    study.getStudyCreatedTime(),
                     study.getStartTime(),
                     study.getDeadline(),
                     study.getRecruit(),
@@ -426,6 +431,7 @@ public class StudyService {
                             study.getId(),
                             study.getStudyId(),
                             study.getStudytitle(),
+                            study.getStudyCreatedTime(),
                             study.getStartTime(),
                             study.getDeadline(),
                             study.getRecruit(),
@@ -465,6 +471,7 @@ public class StudyService {
                             study.getId(),
                             study.getStudyId(),
                             study.getStudytitle(),
+                            study.getStudyCreatedTime(),
                             study.getStartTime(),
                             study.getDeadline(),
                             study.getRecruit(),
@@ -512,6 +519,7 @@ public class StudyService {
                     study.getId(),
                     study.getStudyId(),
                     study.getStudytitle(),
+                    study.getStudyCreatedTime(),
                     study.getStartTime(),
                     study.getDeadline(),
                     study.getRecruit(),
@@ -539,6 +547,7 @@ public class StudyService {
                     study.getId(),
                     study.getStudyId(),
                     study.getStudytitle(),
+                    study.getStudyCreatedTime(),
                     study.getStartTime(),
                     study.getDeadline(),
                     study.getRecruit(),
@@ -573,6 +582,7 @@ public class StudyService {
         }
 
         ApplyEntity applyEntity = ApplyEntity.toApplyEntity(study, applyUserId, false);
+        notificationService.sendNotification(study.getUserId(), "새로운 신청자가 스터디 모집에 신청했습니다!", study.getStudytitle());
         return applyRepository.save(applyEntity);
     }
 
@@ -605,7 +615,7 @@ public class StudyService {
         // 신청 수락 처리
         applyEntity.setAccept(true);
         applyRepository.save(applyEntity);
-
+        notificationService.sendNotification(applyEntity.getApplyUserId(), "스터디에 합류하셨습니다!", study.getStudytitle());
         // 스터디의 회원 수 증가
         study.setCountMember(study.getCountMember() + 1);
         studyRepository.save(study);
@@ -651,17 +661,33 @@ public class StudyService {
      */
     @Transactional
     public void rejectApplication(String userId, Long applyId) {
+        // 지원 신청을 조회
         ApplyEntity applyEntity = applyRepository.findById(applyId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "지원 신청을 찾을 수 없습니다."));
 
+        // 관련된 스터디 조회
         StudyEntity study = applyEntity.getStudyEntity();
 
-        // study의 userId와 요청한 userId가 일치하는지 확인
+        // 스터디의 소유자와 요청한 userId가 일치하는지 확인
         if (!study.getUserId().equals(userId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "권한이 없습니다.");
         }
 
-        // 지원 거절(삭제)
+        // 신청이 이미 수락된 상태인지 확인
+        if (applyEntity.isAccept()) {
+            // countmember가 0보다 큰지 확인하여 음수가 되지 않도록 방지
+            if (study.getCountMember() > 0) {
+                study.setCountMember(study.getCountMember() - 1);
+            } else {
+                // 상황에 따라 예외를 던지거나 로깅할 수 있습니다.
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "countmember가 이미 0입니다.");
+            }
+            // 변경된 StudyEntity를 저장
+            studyRepository.save(study);
+        }
+        notificationService.sendNotification(applyEntity.getApplyUserId(), "아쉽게도 스터디에 거절되셨습니다.!", study.getStudytitle());
+
+        // 지원 신청 삭제 (거절)
         applyRepository.delete(applyEntity);
     }
 
