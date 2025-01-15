@@ -28,5 +28,10 @@ public class PostReportEntity {
 
     @Column(nullable = false)
     private int reportCount = 0; // 신고 횟수
+
+    @Column(nullable = false)
+    private String reportId; // 피신고자 ID
+
+
 }
 

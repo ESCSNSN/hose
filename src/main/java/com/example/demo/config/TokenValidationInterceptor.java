@@ -29,6 +29,7 @@ public class TokenValidationInterceptor implements HandlerInterceptor {
             return true; // 그냥 통과 (또는 CORS 필터가 헤더를 세팅하도록)
         }
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        System.out.println("Authorization Header: " + authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());

@@ -1,7 +1,18 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.PostReportDTO;
+import com.example.demo.repository.CodingRepository;
+import com.example.demo.repository.CompetitionRepository;
+import com.example.demo.repository.FreeRepository;
+import com.example.demo.repository.GraduateRepository;
+import com.example.demo.repository.QuestRepository;
+import com.example.demo.repository.StudyRepository;
+import com.example.demo.service.CodingService;
+import com.example.demo.service.CompetitionService;
+import com.example.demo.service.GraduateService;
 import com.example.demo.service.PostReportService;
+import com.example.demo.service.QuestService;
+import com.example.demo.service.StudyService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +24,24 @@ public class PostReportApiController {
 
     @Autowired
     private PostReportService postReportService;
+    private CodingService codingService;
+    private StudyService studyService;
+    private QuestService questService;
+    private FreeController freeController;
+    private GraduateService graduateService;
+    private CompetitionService competitionService;
+    @Autowired
+    private CodingRepository codingRepository;
+    @Autowired
+    private StudyRepository studyRepository;
+    @Autowired
+    private QuestRepository questRepository;
+    @Autowired
+    private FreeRepository freeRepository;
+    @Autowired
+    private GraduateRepository graduateRepository;
+    @Autowired
+    private CompetitionRepository competitionRepository;
 
     /**
      * POST /api/board/{boardType}/{postId}/report
@@ -23,7 +52,25 @@ public class PostReportApiController {
                                              @RequestParam String reason,
                                              HttpServletRequest request) {
         String reporterId = (String) request.getAttribute("username");
-        postReportService.addReport(boardType,postId,reporterId, reason);
+        if (boardType == "coding" || boardType == "Coding"){
+            postReportService.addReport(boardType,postId,reporterId, reason, codingRepository.findById(postId).get().getUserId());
+        }
+        else if (boardType == "study" || boardType == "Study"){
+            postReportService.addReport(boardType,postId,reporterId, reason, studyRepository.findById(postId).get().getUserId());
+        }
+        else if (boardType == "quest" || boardType == "Quest"){
+            postReportService.addReport(boardType,postId,reporterId, reason, questRepository.findByID(postId).get().getUserId());
+        }
+        else if (boardType == "free" || boardType == "Free"){
+            postReportService.addReport(boardType,postId,reporterId, reason, freeRepository.findById(postId).get().getUserId());
+        }
+        else if (boardType == "graduate" || boardType == "Graduate"){
+            postReportService.addReport(boardType,postId,reporterId, reason, graduateRepository.findByID(postId).get().getUserId());
+        }
+        else if (boardType == "competition" || boardType == "Competition"){
+            postReportService.addReport(boardType,postId,reporterId, reason, competitionRepository.findByID(postId).get().getUserId());
+        }
+
         return ResponseEntity.ok("게시글이 성공적으로 신고되었습니다.");
     }
 }

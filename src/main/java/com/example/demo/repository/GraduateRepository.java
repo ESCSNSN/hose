@@ -32,4 +32,5 @@ public interface GraduateRepository extends JpaRepository<GraduateEntity,Long> {
 
     @Query("SELECT DISTINCT s FROM GraduateEntity s LEFT JOIN FETCH s.graduateFileEntityList WHERE s.graduateId = :graduateID ORDER BY s.graduateCreatedTime DESC, s.id DESC")
     List<GraduateEntity> findTop3GraduatesByGraduateId(String graduateID, Pageable pageable);
+
 }

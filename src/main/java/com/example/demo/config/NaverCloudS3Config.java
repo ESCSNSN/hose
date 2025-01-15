@@ -13,8 +13,8 @@ public class NaverCloudS3Config {
 
     @Bean
     public S3Client s3Client() {
-        String accessKey = ""; // 실제 액세스 키로 교체
-        String secretKey = ""; // 실제 비밀 키로 교체
+        String accessKey = "ncp_iam_BPAMKR3rTCbcFKrMJxUM"; // 실제 액세스 키로 교체
+        String secretKey = "ncp_iam_BPKMKRTYorBEuBSgW6fcdgZQusSe39BX8u"; // 실제 비밀 키로 교체
         String endpoint = "https://kr.object.ncloudstorage.com"; // 특정 엔드포인트로 교체
 
         return S3Client.builder()

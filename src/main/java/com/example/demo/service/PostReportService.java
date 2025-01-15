@@ -25,7 +25,7 @@ public class PostReportService {
      * 게시물 신고 추가 또는 업데이트
      */
     @Transactional
-    public void addReport(String boardType, Long postId, String reporterId, String reason) {
+    public void addReport(String boardType, Long postId, String reporterId, String reason, String reportId) {
         // 기존 신고 확인
         Optional<PostReportEntity> existingReportOpt = postReportRepository.findByPostIdAndReporterId(postId, reporterId);
 
@@ -43,6 +43,7 @@ public class PostReportService {
             newReport.setReporterId(reporterId);
             newReport.setReason(reason);
             newReport.setReportCount(1);
+            newReport.setReportId(reportId);
             postReportRepository.save(newReport);
         }
     }
@@ -98,7 +99,8 @@ public class PostReportService {
                 entity.getReporterId(),
                 entity.getReason(),
                 entity.getBoardType(),
-                entity.getReportCount()
+                entity.getReportCount(),
+                entity.getReportId()
         );
     }
 
