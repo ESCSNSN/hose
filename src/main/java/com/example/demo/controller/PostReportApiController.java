@@ -59,16 +59,16 @@ public class PostReportApiController {
             postReportService.addReport(boardType,postId,reporterId, reason, studyRepository.findById(postId).get().getUserId());
         }
         else if (boardType == "quest" || boardType == "Quest"){
-            postReportService.addReport(boardType,postId,reporterId, reason, questRepository.findByID(postId).get().getUserId());
+            postReportService.addReport(boardType,postId,reporterId, reason, questService.findByID(postId).getUserID());
         }
         else if (boardType == "free" || boardType == "Free"){
             postReportService.addReport(boardType,postId,reporterId, reason, freeRepository.findById(postId).get().getUserId());
         }
         else if (boardType == "graduate" || boardType == "Graduate"){
-            postReportService.addReport(boardType,postId,reporterId, reason, graduateRepository.findByID(postId).get().getUserId());
+            postReportService.addReport(boardType,postId,reporterId, reason, graduateService.findByID(postId).getUserID());
         }
         else if (boardType == "competition" || boardType == "Competition"){
-            postReportService.addReport(boardType,postId,reporterId, reason, competitionRepository.findByID(postId).get().getUserId());
+            postReportService.addReport(boardType,postId,reporterId, reason, competitionService.findByID(postId).getUserId());
         }
 
         return ResponseEntity.ok("게시글이 성공적으로 신고되었습니다.");
