@@ -39,10 +39,10 @@ spring:
 logging:
   level:
     org.hibernate.SQL: INFO  # SQL 로그 레벨
-    org.hibernate.type.descriptor.sql.BasicBinder: WARN  # 바인더 로그 레벨
-    org.springframework.security: DEBUG  # Spring Security 로그 레벨
-    org.springframework.web: DEBUG
-    com.example.demo: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO  # 바인더 로그 레벨
+    org.springframework.security: INFO  # Spring Security 로그 레벨
+    org.springframework.web: INFO
+    com.example.demo: INFO
 
 ncloud:
   object-storage:

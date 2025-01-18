@@ -34,7 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5000","https://61010d194fbc.ngrok.app","https://a35af42a1848.ngrok.app","http://127.0.0.1:5000","http://192.168.0.36:3000","http://192.168.203.119:3000","https://front-end**","https://front-end-git-main-soyuns-projects-ecbdb426.vercel.app"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5000","https://61010d194fbc.ngrok.app","https://a35af42a1848.ngrok.app","http://127.0.0.1:5000","http://192.168.0.36:3000","https://front-end-git-main-soyuns-projects-ecbdb426.vercel.app"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Refreshtoken"));

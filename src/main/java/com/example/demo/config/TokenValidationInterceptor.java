@@ -16,8 +16,8 @@ import java.util.Map;
 @Component
 public class TokenValidationInterceptor implements HandlerInterceptor {
 
-    //@Value("http://ubuntu-esclogin-1:8081") // AUTH 서비스 URL
-    @Value("https://fd5ca3755e85.ngrok.app") // AUTH 서비스 URL
+    @Value("http://ubuntu-esclogin-1:8081") // AUTH 서비스 URL
+    //@Value("https://fd5ca3755e85.ngrok.app") // AUTH 서비스 URL
     private String authServiceUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();

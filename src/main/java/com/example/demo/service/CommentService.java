@@ -47,7 +47,12 @@ public class CommentService {
         }
 
         commentRepository.save(comment);
-        notificationService.sendNotification(postUser, "새로운 댓글이 달렸습니다.", comment.getContent());
+        try {
+            notificationService.sendNotification(postUser, "새로운 댓글이 달렸습니다.", comment.getContent());
+        } catch (Exception e) {
+            // Log the exception and continue
+            System.err.println("Failed to send notification: " + e.getMessage());
+        }
     }
 
     /**

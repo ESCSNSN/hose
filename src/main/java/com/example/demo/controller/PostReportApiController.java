@@ -52,23 +52,26 @@ public class PostReportApiController {
                                              @RequestParam String reason,
                                              HttpServletRequest request) {
         String reporterId = (String) request.getAttribute("username");
-        if (boardType == "coding" || boardType == "Coding"){
+        if ("coding".equalsIgnoreCase(boardType)){
             postReportService.addReport(boardType,postId,reporterId, reason, codingRepository.findById(postId).get().getUserId());
         }
-        else if (boardType == "study" || boardType == "Study"){
+        else if ("studies".equalsIgnoreCase(boardType)){
             postReportService.addReport(boardType,postId,reporterId, reason, studyRepository.findById(postId).get().getUserId());
         }
-        else if (boardType == "quest" || boardType == "Quest"){
+        else if ("quest".equalsIgnoreCase(boardType)){
             postReportService.addReport(boardType,postId,reporterId, reason, questService.findByID(postId).getUserID());
         }
-        else if (boardType == "free" || boardType == "Free"){
+        else if ("free".equalsIgnoreCase(boardType)){
             postReportService.addReport(boardType,postId,reporterId, reason, freeRepository.findById(postId).get().getUserId());
         }
-        else if (boardType == "graduate" || boardType == "Graduate"){
+        else if ("graduate".equalsIgnoreCase(boardType)){
             postReportService.addReport(boardType,postId,reporterId, reason, graduateService.findByID(postId).getUserID());
         }
-        else if (boardType == "competition" || boardType == "Competition"){
+        else if ("competition".equalsIgnoreCase(boardType)){
             postReportService.addReport(boardType,postId,reporterId, reason, competitionService.findByID(postId).getUserId());
+        }
+        else{
+                return ResponseEntity.badRequest().body("게시판 타입이 잘못되었습니다.");
         }
 
         return ResponseEntity.ok("게시글이 성공적으로 신고되었습니다.");
